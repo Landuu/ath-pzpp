@@ -16,8 +16,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseAuthorization();
-
+app.UseStaticFiles();
 app.MapControllers();
+
+#pragma warning disable ASP0001
+app.UseAuthorization();
+#pragma warning restore ASP0001
+
+app.MapWhen(ctx => !ctx.Request.Path.StartsWithSegments("/api"), index =>
+{
+    index.UseRouting();
+    index.UseEndpoints(endpoints =>
+    {
+        endpoints.MapFallbackToFile("index.html");
+    });
+});
 
 app.Run();

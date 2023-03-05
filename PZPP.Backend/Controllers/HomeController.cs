@@ -14,7 +14,7 @@ namespace PZPP.Backend.Controllers
         [HttpGet]
         public IResult Get()
         {
-            return Results.Ok();
+            return Results.Ok("git");
         }
     }
 }
