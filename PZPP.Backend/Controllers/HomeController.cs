@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PZPP.Backend.Controllers
@@ -15,6 +16,14 @@ namespace PZPP.Backend.Controllers
         public IResult Get()
         {
             return Results.Ok("git");
+        }
+
+        [Authorize]
+        [HttpGet("authorized")]
+        public IResult GetAuthorized()
+        {
+            var u = User.Identity;
+            return Results.Text("authorized");
         }
     }
 }
