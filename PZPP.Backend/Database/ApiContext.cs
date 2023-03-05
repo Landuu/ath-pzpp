@@ -16,7 +16,15 @@ namespace PZPP.Backend.Database
         {
             options.UseSqlServer(_configuration.GetConnectionString("Database"));
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.UserToken)
+                .WithOne(t => t.User)
+                .HasForeignKey<UserToken>(t =>t.UserId);
+        }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<UserToken> UserTokens { get; set; }
     }
 }

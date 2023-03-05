@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using PZPP.Backend.Database;
+using PZPP.Backend.Utils;
 using PZPP.Backend.Utils.Settings;
 using System.Text;
 
@@ -8,17 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Config
 JWTSettings jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
-
+JWTHelper jwtHelper = new(jwtSettings);
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
-    };
-
+    options.TokenValidationParameters = jwtHelper.GetValidationParameters();
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>

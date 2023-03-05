@@ -15,5 +15,7 @@
         public DateTime RegisterDate { get; set; }
 
         public DateTime LastLogin { get; set; }
+
+        public UserToken UserToken { get; set; }
     }
 }
