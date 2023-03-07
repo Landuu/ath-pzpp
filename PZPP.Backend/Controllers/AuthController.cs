@@ -13,7 +13,6 @@ using System.Text;
 
 namespace PZPP.Backend.Controllers
 {
-    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -41,8 +40,9 @@ namespace PZPP.Backend.Controllers
             if (user == null) return Results.BadRequest();
 
             var claims = CreateClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
             var refreshClaims = CreateRefreshClaims(user);
+            // string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
+            string token = GenerateToken(claims, DateTime.Now.AddSeconds(10));
             string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
             
             user.UserToken = new() { RefreshToken = refreshToken };
@@ -76,11 +76,30 @@ namespace PZPP.Backend.Controllers
                 return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
 
             var claims = CreateClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
+            // string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
+            string token = GenerateToken(claims, DateTime.Now.AddSeconds(10));
             Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
             return Results.Ok();
         }
 
+        [Authorize]
+        [HttpGet("user")]
+        public IResult GetUser()
+        {
+            return Results.Text("Janek");
+        }
+
+        [HttpGet("logout")]
+        public IResult Logout()
+        {
+            Response.Cookies.Delete(_jwtSettings.CookieKey);
+            Response.Cookies.Delete(_jwtSettings.RefreshCookieKey);
+            return Results.Ok();
+        }
+
+
+
+        // Private
         private static Claim[] CreateClaims(User user)
         {
             return new Claim[]

@@ -1,0 +1,4 @@
+
+.link {
+    @apply px-4 py-2 rounded shadow bg-emerald-400 hover:bg-emerald-500;
+}

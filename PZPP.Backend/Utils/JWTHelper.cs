@@ -21,6 +21,7 @@ namespace PZPP.Backend.Utils
                 ValidIssuer = _jwtSettings.Issuer,
                 ValidAudience = _jwtSettings.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtSettings.Secret)),
+                ClockSkew = TimeSpan.Zero
             };
         }
 
@@ -33,7 +34,7 @@ namespace PZPP.Backend.Utils
                 Expires = expire,
                 Issuer = _jwtSettings.Issuer,
                 Audience = _jwtSettings.Audience,
-                SigningCredentials = new(signKey, SecurityAlgorithms.HmacSha256)
+                SigningCredentials = new(signKey, SecurityAlgorithms.HmacSha256),
             };
         }
     }

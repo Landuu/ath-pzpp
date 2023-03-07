@@ -1,15 +1,21 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PZPP.Backend.Utils;
+using PZPP.Backend.Utils.Settings;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace PZPP.Backend.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("/api")]
     public class HomeController : ControllerBase
     {
-        public HomeController()
-        {
+        private readonly JWTSettings settings;
 
+        public HomeController(IConfiguration configuration)
+        {
+            settings = configuration.GetSection("JWT").Get<JWTSettings>()!;
         }
 
         [HttpGet]
@@ -18,12 +24,22 @@ namespace PZPP.Backend.Controllers
             return Results.Ok("git");
         }
 
-        [Authorize]
         [HttpGet("authorized")]
-        public IResult GetAuthorized()
+        public async Task<IResult> GetAuthorized()
         {
+            var th = new JwtSecurityTokenHandler();
+
+            var helper = new JWTHelper(settings);
+            var ar = await th.ValidateTokenAsync(Request.Cookies["token"], helper.GetValidationParameters());
+
             var u = User.Identity;
             return Results.Text("authorized");
+        }
+
+        [HttpPost("post")]
+        public async Task<IResult> PostTest([FromForm] string test)
+        {
+            return Results.Ok();
         }
     }
 }
