@@ -6,7 +6,7 @@ import { axiosAuth } from "./axiosClient";
 import { useUserContext } from "./hooks/useUserContext";
 import Layout from "./layout/Layout";
 import Index from "./pages/Index/Index";
-import Login from "./pages/Login/Login";
+import Test from "./pages/Test/Test";
 
 
 const App = () => {
@@ -40,7 +40,7 @@ const App = () => {
 		createRoutesFromElements(
 			<Route element={<Layout />}>
 				<Route index element={<Index />} />
-				<Route path='/login' element={<Login />} />
+				<Route path='/test' element={<Test />} />
 			</Route>
 		)
 	)
