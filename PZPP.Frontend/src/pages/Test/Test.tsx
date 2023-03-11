@@ -1,7 +1,12 @@
+import { Provider } from "jotai";
 import { axiosAuth } from "../../axiosClient";
 import Container from "../../components/Container";
+import { useUserContext } from "../../hooks/useUserContext";
+
 
 const Test = () => {
+    const {user} = useUserContext();
+
     const handleClick = async () => {
         const res = await axiosAuth.get('/api/authorized');
         console.log('ath', res);
@@ -18,6 +23,7 @@ const Test = () => {
     return (
         <Container className="my-8">
             <div>Login</div>
+            <div>U: {user}</div>
 
             <div>
                 <div className="mt-5 space-y-5">

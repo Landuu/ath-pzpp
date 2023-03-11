@@ -1,26 +1,31 @@
 import axios from "axios";
-import { getDefaultStore } from "jotai";
-import { useState } from "react";
+import { getDefaultStore, useAtom } from "jotai";
+import { useEffect, useState } from "react";
 import { atomUser } from "../atoms"
 import { axiosAuth } from "../axiosClient";
 import { useToast } from "./useToast";
 
 export const useUserContext = () => {
-    const [user, setUser] = useState<string | null>(null);
     const showToast = useToast();
+    const defaultStore = getDefaultStore();
+    const [user, setUser] = useState<string | null>(null);
 
-    const store = getDefaultStore();
-    store.sub(atomUser, () => {
-        setUser(store.get(atomUser));
-    });
+    useEffect(() => {
+        setUser(defaultStore.get(atomUser));
+        const unsub = defaultStore.sub(atomUser, () => {
+            const usr = defaultStore.get(atomUser);
+            setUser(usr);
+        })
+
+        return unsub;
+    }, [])
     
     const refreshUser = async () => {
         try {
             const res = await axiosAuth.get<string>('/api/auth/user');
-            store.set(atomUser, res.data);
+            defaultStore.set(atomUser, res.data);
             return true;
         } catch(error) {
-            console.log('fetchUserError', error);
             return false;
         }
     }
@@ -28,7 +33,7 @@ export const useUserContext = () => {
     const logoutUser = async () => {
         try {
             const res = axios.get('/api/auth/logout');
-            store.set(atomUser, null);
+            defaultStore.set(atomUser, null);
         } catch(error) {
             showToast('Wystąpił błąd podczas wylogowywania. Odśwież stronę lub spróbuj ponownie później');
         }

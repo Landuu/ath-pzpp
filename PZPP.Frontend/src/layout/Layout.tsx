@@ -3,20 +3,15 @@ import Button from "devextreme-react/button";
 import Popup from "devextreme-react/popup";
 import Tabs from "devextreme-react/tabs";
 import TextBox from "devextreme-react/text-box";
-import { Provider, useAtom, useSetAtom } from "jotai";
+import ValidationSummary from "devextreme-react/validation-summary";
+import { Validator, RequiredRule, StringLengthRule } from "devextreme-react/validator";
+import { useAtom, useSetAtom } from "jotai";
 import { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useToast } from "../hooks/useToast";
 import { useUserContext } from "../hooks/useUserContext";
 import { atomRenderLogin, atomShowLogin } from "./layoutAtoms";
 
-const LayoutWithProvider = () => {
-    return (
-        <Provider>
-            <Layout />
-        </Provider>
-    )
-}
 
 const Layout = () => {
     const { user, logoutUser } = useUserContext();
@@ -33,7 +28,7 @@ const Layout = () => {
             <div>
                 {user
                     ? <Button text="Wyloguj" onClick={() => logoutUser()} type='default' />
-                    : <Button type="default" text="Logowanie" onClick={() => { setRenderLogin(true); setShowLogin(true); }} />
+                    : <Button type="default" icon='unlock' text="Logowanie" onClick={() => { setRenderLogin(true); setShowLogin(true); }} />
                 }
             </div>
         </nav>
@@ -67,7 +62,7 @@ const LoginModal = () => {
         {
             id: 1,
             text: 'Rejestracja',
-            icon: 'comment',
+            icon: 'add',
         }
     ];
 
@@ -96,66 +91,67 @@ const LoginModal = () => {
 const LoginTab = () => {
     const [login, setLogin] = useState('');
     const [password, setPassword] = useState('');
-    const [valid, setValid] = useState([true, true]);
-    const showToast = useToast();
+    const [loading, setLoading] = useState(false);
     const { refreshUser } = useUserContext();
     const setShowLogin = useSetAtom(atomShowLogin);
+    const showToast = useToast();
+    
+    const handleLogin = async (e: any) => {
+        e.preventDefault();
+        setLoading(true);
 
-    const getToken = async () => {
         try {
-            const res = await axios.get('/api/auth');
-            console.log('login', res);
-            return true;
-        } catch (e) {
-            console.log('loginError', e);
-            return false;
-        }
-    }
-
-    const handleLogin = async () => {
-        let isValid = [true, true];
-        if (login == '') isValid[0] = false;
-        if (password == '') isValid[1] = false;
-        setValid(isValid);
-
-        if (isValid.includes(false)) {
-            return;
-        }
-
-        const success = await getToken();
-        if (success) {
+            const payload = {
+                Login: login,
+                Password: password
+            }
+            const res = await axios.post('/api/auth', payload);
             refreshUser();
             showToast('Pomyślnie zalogowano!', 'success');
             setShowLogin(false);
-        } else {
-            showToast('Błąd logowania', 'error');
+        } catch (e) {
+            showToast("Nieprawidłowy login lub hasło!", 'error');
         }
+        
+        setLoading(false);
     }
 
     return (<>
         <div className="text-center text-gray-500 text-lg">Zaloguj się do naszego serwisu</div>
 
-        <div className="mt-8 px-20 space-y-5">
-            <TextBox
-                label="Login"
-                labelMode="floating"
-                value={login}
-                onValueChanged={(e) => setLogin(e.value)}
-                isValid={valid[0]}
-                onFocusOut={() => setLogin(login.trim())}
-            />
-            <TextBox
-                label="Hasło"
-                labelMode="floating"
-                mode="password"
-                value={password}
-                onValueChanged={(e) => setPassword(e.value)}
-                onFocusOut={() => setPassword(password.trim())} isValid={valid[1]}
-            />
-            <div className="flex justify-center">
-                <Button text="Zaloguj" type="default" width={150} onClick={handleLogin} />
+
+        <form onSubmit={handleLogin}>
+            <div className="mt-8 px-20 space-y-5">
+                <TextBox
+                    label="Login"
+                    labelMode="floating"
+                    value={login}
+                    onValueChanged={(e) => setLogin(e.value)}
+                    onFocusOut={() => setLogin(login.trim())}
+                >
+                    <Validator>
+                        <RequiredRule message='Uzupełnij pole login' />
+                        <StringLengthRule min={3} max={24} message='Login musi składać się z 3-24 znaków' />
+                    </Validator>
+                </TextBox>
+                <TextBox
+                    label="Hasło"
+                    labelMode="floating"
+                    mode="password"
+                    value={password}
+                    onValueChanged={(e) => setPassword(e.value)}
+                    onFocusOut={() => setPassword(password.trim())}
+                >
+                    <Validator>
+                        <RequiredRule message='Uzupełnij pole hasło' />
+                        <StringLengthRule min={5} max={32} message='Hasło musi składać się z 5-32 znaków' />
+                    </Validator>
+                </TextBox>
+                <div className="flex justify-center">
+                    <Button text="Zaloguj" type="default" width={150} useSubmitBehavior={true} disabled={loading} />
+                </div>
             </div>
-        </div>
+        </form>
     </>)
 }
 
@@ -165,4 +161,4 @@ const RegisterTab = () => {
     )
 }
 
-export default LayoutWithProvider;
+export default Layout;

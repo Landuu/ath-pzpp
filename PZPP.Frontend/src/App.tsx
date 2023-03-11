@@ -29,7 +29,7 @@ const App = () => {
 				return Promise.reject(error);
 			}
 		});
-		console.log('Interceptor attach');
+
 		// Refresh user context
 		refreshUser();
 

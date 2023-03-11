@@ -54,7 +54,7 @@ namespace PZPP.Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.UserToken", b =>
@@ -77,7 +77,7 @@ namespace PZPP.Backend.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("UserTokens");
+                    b.ToTable("UserTokens", (string)null);
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.UserToken", b =>

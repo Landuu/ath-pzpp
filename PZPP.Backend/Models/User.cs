@@ -16,6 +16,6 @@
 
         public DateTime LastLogin { get; set; }
 
-        public UserToken UserToken { get; set; }
+        public UserToken? UserToken { get; set; }
     }
 }

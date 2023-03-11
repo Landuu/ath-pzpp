@@ -10,6 +10,7 @@ using PZPP.Backend.Utils.Results;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using PZPP.Backend.Dto.Auth;
 
 namespace PZPP.Backend.Controllers
 {
@@ -33,16 +34,18 @@ namespace PZPP.Backend.Controllers
             _jwtHelper = new(jwtSettings);
         }
 
-        [HttpGet]
-        public async Task<IResult> GetToken()
+        [HttpPost]
+        public async Task<IResult> GetToken([FromBody] LoginDto dto)
         {
-            User? user = _context.Users.Include(x => x.UserToken).FirstOrDefault();
+            User? user = _context.Users.Include(x => x.UserToken).FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return Results.BadRequest();
+
+            //TODO: Add password hashing
+            if(user.PasswordHash != dto.Password) return Results.BadRequest();
 
             var claims = CreateClaims(user);
             var refreshClaims = CreateRefreshClaims(user);
-            // string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            string token = GenerateToken(claims, DateTime.Now.AddSeconds(10));
+            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
             string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
             
             user.UserToken = new() { RefreshToken = refreshToken };
@@ -76,8 +79,7 @@ namespace PZPP.Backend.Controllers
                 return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
 
             var claims = CreateClaims(user);
-            // string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            string token = GenerateToken(claims, DateTime.Now.AddSeconds(10));
+            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
             Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
             return Results.Ok();
         }
