@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using PZPP.Backend.Database;
 using PZPP.Backend.Utils;
 using PZPP.Backend.Utils.Settings;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 

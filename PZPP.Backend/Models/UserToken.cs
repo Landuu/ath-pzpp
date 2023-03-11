@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace PZPP.Backend.Models
+﻿namespace PZPP.Backend.Models
 {
     public class UserToken
     {

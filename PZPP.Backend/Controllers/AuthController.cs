@@ -3,15 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PZPP.Backend.Database;
+using PZPP.Backend.Dto.Auth;
 using PZPP.Backend.Models;
 using PZPP.Backend.Utils;
-using PZPP.Backend.Utils.Settings;
 using PZPP.Backend.Utils.Results;
+using PZPP.Backend.Utils.Settings;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using PZPP.Backend.Dto.Auth;
-using System.Runtime.InteropServices;
 
 namespace PZPP.Backend.Controllers
 {
@@ -43,13 +41,13 @@ namespace PZPP.Backend.Controllers
             if (user == null) return Results.BadRequest();
 
             //TODO: Add password hashing
-            if(user.PasswordHash != dto.Password) return Results.BadRequest();
+            if (user.PasswordHash != dto.Password) return Results.BadRequest();
 
             var claims = CreateClaims(user);
             var refreshClaims = CreateRefreshClaims(user);
             string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
             string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
-            
+
             user.UserToken = new() { RefreshToken = refreshToken };
             await _context.SaveChangesAsync();
 
@@ -58,7 +56,7 @@ namespace PZPP.Backend.Controllers
             return Results.Ok();
         }
 
-        
+
         [HttpGet("refresh")]
         public async Task<IResult> GetRefresh()
         {
@@ -68,7 +66,7 @@ namespace PZPP.Backend.Controllers
 
             // Validate provided token
             TokenValidationResult validationResult = await tokenHandler.ValidateTokenAsync(refreshToken, _jwtHelper.GetValidationParameters());
-            if(!validationResult.IsValid)
+            if (!validationResult.IsValid)
                 return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
 
             // Extract info from token
@@ -124,7 +122,7 @@ namespace PZPP.Backend.Controllers
         {
             string? uid = User.FindFirstValue(ClaimKeys.UID);
             User? user = await _context.Users.FindAsync(Convert.ToInt32(uid));
-            if(user == null) return Results.BadRequest();
+            if (user == null) return Results.BadRequest();
             return Results.Text(user.Login);
         }
 
@@ -139,7 +137,7 @@ namespace PZPP.Backend.Controllers
         [HttpGet("availableLogin")]
         public async Task<IResult> GetIsLoginAvailable([FromQuery] string? login)
         {
-            if(login == null) return Results.BadRequest();
+            if (login == null) return Results.BadRequest();
             bool isUser = await _context.Users.AnyAsync(x => x.Login == login.ToLower());
             return Results.Ok(!isUser);
         }

@@ -21,7 +21,7 @@ namespace PZPP.Backend.Database
             modelBuilder.Entity<User>()
                 .HasOne(u => u.UserToken)
                 .WithOne(t => t.User)
-                .HasForeignKey<UserToken>(t =>t.UserId);
+                .HasForeignKey<UserToken>(t => t.UserId);
         }
 
         public DbSet<User> Users { get; set; }
