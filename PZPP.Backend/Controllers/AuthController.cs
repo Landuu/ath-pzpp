@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using PZPP.Backend.Dto.Auth;
+using System.Runtime.InteropServices;
 
 namespace PZPP.Backend.Controllers
 {
@@ -37,6 +38,7 @@ namespace PZPP.Backend.Controllers
         [HttpPost]
         public async Task<IResult> GetToken([FromBody] LoginDto dto)
         {
+            dto.Login = dto.Login.ToLower();
             User? user = _context.Users.Include(x => x.UserToken).FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return Results.BadRequest();
 
@@ -84,11 +86,46 @@ namespace PZPP.Backend.Controllers
             return Results.Ok();
         }
 
+        [HttpPost("register")]
+        public async Task<IResult> PostRegister([FromBody] RegisterDto dto)
+        {
+            dto.Login = dto.Login.ToLower();
+            bool isUser = await _context.Users.AnyAsync(x => x.Login == dto.Login);
+            if (isUser) return Results.BadRequest();
+
+            DateTime now = DateTime.Now;
+            User user = new()
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Login = dto.Login,
+                PasswordHash = dto.Password,
+                RegisterDate = now,
+                LastLogin = now
+            };
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+
+            var claims = CreateClaims(user);
+            var refreshClaims = CreateRefreshClaims(user);
+            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
+            string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
+            user.UserToken = new() { RefreshToken = refreshToken };
+
+            await _context.SaveChangesAsync();
+            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
+            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, refreshToken, _cookieOptions);
+            return Results.Ok();
+        }
+
         [Authorize]
         [HttpGet("user")]
-        public IResult GetUser()
+        public async Task<IResult> GetUser()
         {
-            return Results.Text("Janek");
+            string? uid = User.FindFirstValue(ClaimKeys.UID);
+            User? user = await _context.Users.FindAsync(Convert.ToInt32(uid));
+            if(user == null) return Results.BadRequest();
+            return Results.Text(user.Login);
         }
 
         [HttpGet("logout")]
@@ -99,6 +136,14 @@ namespace PZPP.Backend.Controllers
             return Results.Ok();
         }
 
+        [HttpGet("availableLogin")]
+        public async Task<IResult> GetIsLoginAvailable([FromQuery] string? login)
+        {
+            if(login == null) return Results.BadRequest();
+            bool isUser = await _context.Users.AnyAsync(x => x.Login == login.ToLower());
+            return Results.Ok(!isUser);
+        }
+
 
 
         // Private
@@ -106,7 +151,7 @@ namespace PZPP.Backend.Controllers
         {
             return new Claim[]
             {
-                new(ClaimKeys.Login, user.Login),
+                new(ClaimKeys.Login, user.Login.ToLower()),
                 new(ClaimKeys.UID, user.Id.ToString()),
                 new(ClaimTypes.Role, "User")
             };

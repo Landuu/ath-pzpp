@@ -1,9 +1,8 @@
-import { useEffect } from "react";
-import Container from "../../components/Container"
+import Container from "../../components/Container";
 import { useUserContext } from "../../hooks/useUserContext";
 
 const Index = () => {
-    const {user} = useUserContext();
+    const { user } = useUserContext();
 
     return (
         <Container className="my-8">
@@ -11,5 +10,5 @@ const Index = () => {
         </Container>
     );
 }
- 
+
 export default Index;
