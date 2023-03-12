@@ -23,7 +23,7 @@ const Test = () => {
     return (
         <Container className="my-8">
             <div>Login</div>
-            <div>U: {user}</div>
+            <div>U: {user?.Login}</div>
 
             <div>
                 <div className="mt-5 space-y-5">

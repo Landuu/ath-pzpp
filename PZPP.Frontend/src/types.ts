@@ -1,4 +1,12 @@
 
+export type UserContext = {
+    UID: number,
+    Login: string,
+    FirstName: string,
+    LastName: string,
+    Name: string
+}
+
 export type LoginDto = {
     Login: string,
     Password: string

@@ -6,7 +6,7 @@ const Index = () => {
 
     return (
         <Container className="my-8">
-            {user ? <div>Urżytkownik zalogowany jako {user}</div> : <div>Nie zalogowano</div>}
+            {user ? <div>Urżytkownik zalogowany jako {user.Name} ({user.Login})</div> : <div>Nie zalogowano</div>}
         </Container>
     );
 }

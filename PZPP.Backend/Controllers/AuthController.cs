@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,13 +19,15 @@ namespace PZPP.Backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ApiContext _context;
+        private readonly IMapper _mapper;
         private readonly JWTSettings _jwtSettings;
         private readonly JWTHelper _jwtHelper;
         private readonly CookieOptions _cookieOptions;
 
-        public AuthController(ApiContext context, IConfiguration configuration)
+        public AuthController(ApiContext context, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
             _cookieOptions = new() { HttpOnly = true };
 
             var jwtSettings = configuration.GetSection("JWT").Get<JWTSettings>();
@@ -122,8 +125,9 @@ namespace PZPP.Backend.Controllers
         {
             string? uid = User.FindFirstValue(ClaimKeys.UID);
             User? user = await _context.Users.FindAsync(Convert.ToInt32(uid));
+            UserContextDto dto = _mapper.Map<UserContextDto>(user);
             if (user == null) return Results.BadRequest();
-            return Results.Text(user.Login);
+            return Results.Json(dto);
         }
 
         [HttpGet("logout")]
