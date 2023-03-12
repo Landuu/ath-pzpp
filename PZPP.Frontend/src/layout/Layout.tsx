@@ -1,16 +1,56 @@
 import Button from "devextreme-react/button";
+import DropDownButton, { DropDownOptions } from "devextreme-react/drop-down-button";
 import Popup from "devextreme-react/popup";
+import { ItemClickEvent } from "devextreme/ui/drop_down_button";
 import { useAtom } from "jotai";
 import { Link, Outlet } from "react-router-dom";
+import { useToast } from "../hooks/useToast";
 import { useUserContext } from "../hooks/useUserContext";
 import LoginModal from "./components/LoginModal";
 import { atomRenderLogin, atomShowLogin } from "./layoutAtoms";
 
+type ProfileDropdownOption = {
+    id: number
+    text: string
+    icon: string
+}
+
+const profileDropdownOptions: ProfileDropdownOption[] = [
+    {
+        id: 0,
+        text: 'Twój profil',
+        icon: 'user'
+    },
+    {
+        id: 1,
+        text: 'Twoje zamówienia',
+        icon: 'alignleft'
+    },
+    {
+        id: 2,
+        text: 'Wyloguj',
+        icon: 'undo'
+    }
+];
+
+
 
 const Layout = () => {
     const { user, logoutUser } = useUserContext();
+    const showToast = useToast();
     const [showLogin, setShowLogin] = useAtom(atomShowLogin);
     const [renderLogin, setRenderLogin] = useAtom(atomRenderLogin);
+
+    const handleDropdownClick = (e: ItemClickEvent) => {
+        const item: ProfileDropdownOption = e.itemData;
+        if(item.id == 0) {
+            showToast('Twój profil');
+        } else if(item.id == 1) {
+            showToast('Twoje zamówienia');
+        } else if(item.id == 2) {
+            logoutUser();
+        }
+    }
 
     return (<>
         <nav className="w-full px-20 py-3 shadow-lg flex justify-between">
@@ -21,7 +61,16 @@ const Layout = () => {
             </div>
             <div>
                 {user
-                    ? <Button text="Wyloguj" icon='undo' onClick={() => logoutUser()} type='default' />
+                    ? <>
+                        <DropDownButton
+                            text={user.Name}
+                            icon="user"
+                            width={200}
+                            items={profileDropdownOptions}
+                            onItemClick={handleDropdownClick}
+                        />
+                    </>
+
                     : <Button type="default" icon='unlock' text="Logowanie" onClick={() => { setRenderLogin(true); setShowLogin(true); }} />
                 }
             </div>

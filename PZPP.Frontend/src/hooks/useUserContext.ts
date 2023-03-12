@@ -25,7 +25,6 @@ export const useUserContext = () => {
         try {
             const res = await axiosAuth.get<UserContext>('/api/auth/user');
             defaultStore.set(atomUser, res.data);
-            console.log(res.data);
             return true;
         } catch (error) {
             return false;
