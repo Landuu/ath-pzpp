@@ -44,7 +44,8 @@ namespace PZPP.Backend.Controllers
             if (user == null) return Results.BadRequest();
 
             //TODO: Add password hashing
-            if (user.PasswordHash != dto.Password) return Results.BadRequest();
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            if (!isPasswordValid) return Results.BadRequest();
 
             var claims = CreateClaims(user);
             var refreshClaims = CreateRefreshClaims(user);
@@ -100,7 +101,7 @@ namespace PZPP.Backend.Controllers
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Login = dto.Login,
-                PasswordHash = dto.Password,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RegisterDate = now,
                 LastLogin = now
             };
