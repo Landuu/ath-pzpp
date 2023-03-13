@@ -4,8 +4,9 @@ import Container from "../../components/Container";
 import { useUserContext } from "../../hooks/useUserContext";
 
 
-const Test = () => {
+const Profile = () => {
     const {user} = useUserContext();
+    console.log(user);
 
     const handleClick = async () => {
         const res = await axiosAuth.get('/api/authorized');
@@ -22,7 +23,7 @@ const Test = () => {
 
     return (
         <Container className="my-8">
-            <div>Login</div>
+            <div>Profile</div>
             <div>U: {user?.Login}</div>
 
             <div>
@@ -39,4 +40,4 @@ const Test = () => {
     );
 }
 
-export default Test;
+export default Profile;

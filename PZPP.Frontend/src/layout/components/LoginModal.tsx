@@ -30,13 +30,8 @@ const LoginModal = () => {
             />
 
             <div className="pt-5 pb-10">
-                {tab == 0 && <>
-                    <LoginTab />
-                </>}
-
-                {tab == 1 && <>
-                    <RegisterTab />
-                </>}
+                {tab == 0 && <LoginTab />}
+                {tab == 1 && <RegisterTab />}
             </div>
         </div>
     )

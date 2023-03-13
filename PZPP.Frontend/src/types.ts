@@ -1,10 +1,11 @@
 
 export type UserContext = {
-    UID: number,
-    Login: string,
-    FirstName: string,
-    LastName: string,
+    UID: number
+    Login: string
+    FirstName: string
+    LastName: string
     Name: string
+    IsAdmin: boolean
 }
 
 export type LoginDto = {
