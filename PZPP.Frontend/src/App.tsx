@@ -1,37 +1,44 @@
 import axios from "axios";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoutesFromElements, Route } from "react-router";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { axiosAuth } from "./axiosClient";
+import RouteGuard from "./components/RouteGuard";
 import { useUserContext } from "./hooks/useUserContext";
 import Layout from "./layout/Layout";
+import Admin from "./pages/Admin/Admin";
 import Index from "./pages/Index/Index";
-import Test from "./pages/Test/Test";
+import Profile from "./pages/Profile/Profile";
 
 
 const App = () => {
 	const alreadyRan = useRef(false);
 	const { refreshUser } = useUserContext();
+	const [render, setRender] = useState(false);
 
 	useEffect(() => {
-		if(alreadyRan.current) return;
-		
+		if (alreadyRan.current) return;
+
 		// Attach axios refresh token interceptor
 		axiosAuth.interceptors.response.use(response => response, async (error) => {
-			if(error.response.status != 401) {
+			if (error.response.status != 401) {
 				return Promise.reject(error);
 			}
-		
+
 			try {
 				const resRefresh = await axios.get('/api/auth/refresh');
 				return axios(error.response.config);
-			} catch(error) {
+			} catch (error) {
 				return Promise.reject(error);
 			}
 		});
 
-		// Refresh user context
-		refreshUser();
+		// Fetch user and render app
+		const setup = async () => {
+			await refreshUser();
+			setRender(true);
+		}
+		setup();
 
 		alreadyRan.current = true;
 	}, []);
@@ -40,14 +47,21 @@ const App = () => {
 		createRoutesFromElements(
 			<Route element={<Layout />}>
 				<Route index element={<Index />} />
-				<Route path='/test' element={<Test />} />
+
+				<Route element={<RouteGuard />}>
+					<Route path='/profile' element={<Profile />} />
+				</Route>
+
+				<Route element={<RouteGuard onlyAdmin={true} />}>
+					<Route path='/admin' element={<Admin />} />
+				</Route>
 			</Route>
 		)
 	)
 
-	return (
-		<RouterProvider router={router} />
-	)
+	return (<>
+		{render && <RouterProvider router={router} />}
+	</>)
 }
 
 export default App

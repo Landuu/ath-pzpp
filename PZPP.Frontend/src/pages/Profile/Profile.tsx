@@ -4,7 +4,7 @@ import Container from "../../components/Container";
 import { useUserContext } from "../../hooks/useUserContext";
 
 
-const Test = () => {
+const Profile = () => {
     const {user} = useUserContext();
 
     const handleClick = async () => {
@@ -22,8 +22,9 @@ const Test = () => {
 
     return (
         <Container className="my-8">
-            <div>Login</div>
-            <div>U: {user?.Login}</div>
+            <div className="text-lg mb-2">Twój profil</div>
+            <div>Login: {user?.Login}</div>
+            <div>Imię i nazwisko: {user?.Name}</div>
 
             <div>
                 <div className="mt-5 space-y-5">
@@ -39,4 +40,4 @@ const Test = () => {
     );
 }
 
-export default Test;
+export default Profile;

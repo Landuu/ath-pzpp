@@ -10,7 +10,8 @@ namespace PZPP.Backend.MappingProfiles
         {
             CreateMap<User, UserContextDto>()
                 .ForMember(dest => dest.UID, x => x.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Name, x => x.MapFrom(src => src.FirstName + " " + src.LastName));
+                .ForMember(dest => dest.Name, x => x.MapFrom(src => src.FirstName + " " + src.LastName))
+                .ForMember(dest => dest.IsAdmin, x => x.MapFrom(src => src.Login == "admin"));
         }
     }
 }

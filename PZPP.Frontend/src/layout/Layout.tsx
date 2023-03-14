@@ -3,7 +3,7 @@ import DropDownButton, { DropDownOptions } from "devextreme-react/drop-down-butt
 import Popup from "devextreme-react/popup";
 import { ItemClickEvent } from "devextreme/ui/drop_down_button";
 import { useAtom } from "jotai";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/useToast";
 import { useUserContext } from "../hooks/useUserContext";
 import LoginModal from "./components/LoginModal";
@@ -15,39 +15,53 @@ type ProfileDropdownOption = {
     icon: string
 }
 
-const profileDropdownOptions: ProfileDropdownOption[] = [
-    {
+const getDropdownOptions = (isAdmin?: boolean) => {
+    const adminDropdownOption: ProfileDropdownOption = {    
         id: 0,
-        text: 'Twój profil',
-        icon: 'user'
-    },
-    {
-        id: 1,
-        text: 'Twoje zamówienia',
-        icon: 'alignleft'
-    },
-    {
-        id: 2,
-        text: 'Wyloguj',
-        icon: 'undo'
-    }
-];
+        text: "Panel administracyjny",
+        icon: 'add'
+    };
 
-
+    const profileDropdownOptions: ProfileDropdownOption[] = [
+        {
+            id: 1,
+            text: 'Twój profil',
+            icon: 'user'
+        },
+        {
+            id: 2,
+            text: 'Twoje zamówienia',
+            icon: 'alignleft'
+        },
+        {
+            id: 3,
+            text: 'Wyloguj',
+            icon: 'undo'
+        }
+    ];
+    
+    if(isAdmin) return [adminDropdownOption, ...profileDropdownOptions];
+    return profileDropdownOptions;
+}
 
 const Layout = () => {
     const { user, logoutUser } = useUserContext();
     const showToast = useToast();
     const [showLogin, setShowLogin] = useAtom(atomShowLogin);
     const [renderLogin, setRenderLogin] = useAtom(atomRenderLogin);
+    const navigate = useNavigate();
+    const dropdownOptions = getDropdownOptions(user?.IsAdmin);
 
     const handleDropdownClick = (e: ItemClickEvent) => {
         const item: ProfileDropdownOption = e.itemData;
         if(item.id == 0) {
+            navigate('/admin');
+        } else if (item.id == 1) {
             showToast('Twój profil');
-        } else if(item.id == 1) {
+            navigate('/profile');
+        } else if (item.id == 2) {
             showToast('Twoje zamówienia');
-        } else if(item.id == 2) {
+        } else if (item.id == 3) {
             logoutUser();
         }
     }
@@ -56,8 +70,9 @@ const Layout = () => {
         <nav className="w-full px-20 py-3 shadow-lg flex justify-between">
             <div className="flex items-center space-x-3">
                 <span className="font-mono text-xl mr-5">VOLCIK</span>
-                <Link to='/'><Button text='Strona główna' /></Link>
-                <Link to='/test'><Button text='Test' /></Link>
+                <Link to='/'>
+                    <Button text='Strona główna' />
+                </Link>
             </div>
             <div>
                 {user
@@ -66,7 +81,7 @@ const Layout = () => {
                             text={user.Name}
                             icon="user"
                             width={200}
-                            items={profileDropdownOptions}
+                            items={dropdownOptions}
                             onItemClick={handleDropdownClick}
                         />
                     </>

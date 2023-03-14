@@ -9,10 +9,9 @@ import { useToast } from "./useToast";
 export const useUserContext = () => {
     const showToast = useToast();
     const defaultStore = getDefaultStore();
-    const [user, setUser] = useState<UserContext | null>(null);
+    const [user, setUser] = useState<UserContext | null>(defaultStore.get(atomUser));
 
     useEffect(() => {
-        setUser(defaultStore.get(atomUser));
         const unsub = defaultStore.sub(atomUser, () => {
             const usr = defaultStore.get(atomUser);
             setUser(usr);
@@ -33,7 +32,7 @@ export const useUserContext = () => {
 
     const logoutUser = async () => {
         try {
-            const res = axios.get('/api/auth/logout');
+            const res = await axios.get('/api/auth/logout');
             defaultStore.set(atomUser, null);
         } catch (error) {
             showToast('Wystąpił błąd podczas wylogowywania. Odśwież stronę lub spróbuj ponownie później');
