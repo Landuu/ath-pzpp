@@ -6,7 +6,6 @@ import { useUserContext } from "../hooks/useUserContext";
 const RouteGuard = ({ onlyAdmin }: { onlyAdmin?: boolean }) => {
     const { user } = useUserContext();
     const showToast = useToast();
-    console.log(user);
 
     if (!user) {
         showToast('Musisz być zalogowany, aby uzyskać dostęp!', 'warning');

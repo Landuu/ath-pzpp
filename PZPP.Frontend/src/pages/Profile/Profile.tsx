@@ -6,7 +6,6 @@ import { useUserContext } from "../../hooks/useUserContext";
 
 const Profile = () => {
     const {user} = useUserContext();
-    console.log(user);
 
     const handleClick = async () => {
         const res = await axiosAuth.get('/api/authorized');
@@ -23,8 +22,9 @@ const Profile = () => {
 
     return (
         <Container className="my-8">
-            <div>Profile</div>
-            <div>U: {user?.Login}</div>
+            <div className="text-lg mb-2">Twój profil</div>
+            <div>Login: {user?.Login}</div>
+            <div>Imię i nazwisko: {user?.Name}</div>
 
             <div>
                 <div className="mt-5 space-y-5">

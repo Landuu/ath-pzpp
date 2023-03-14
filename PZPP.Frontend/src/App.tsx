@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoutesFromElements, Route } from "react-router";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { axiosAuth } from "./axiosClient";
@@ -14,7 +14,7 @@ import Profile from "./pages/Profile/Profile";
 const App = () => {
 	const alreadyRan = useRef(false);
 	const { refreshUser } = useUserContext();
-	
+	const [render, setRender] = useState(false);
 
 	useEffect(() => {
 		if (alreadyRan.current) return;
@@ -33,23 +33,24 @@ const App = () => {
 			}
 		});
 
-		// Refresh user context
-		refreshUser();
+		// Fetch user and render app
+		const setup = async () => {
+			await refreshUser();
+			setRender(true);
+		}
+		setup();
 
 		alreadyRan.current = true;
 	}, []);
-
-	const {user} = useUserContext();
-	console.log(user);
 
 	const router = createBrowserRouter(
 		createRoutesFromElements(
 			<Route element={<Layout />}>
 				<Route index element={<Index />} />
 
-				{/* <Route element={<RouteGuard />}> */}
+				<Route element={<RouteGuard />}>
 					<Route path='/profile' element={<Profile />} />
-				{/* </Route> */}
+				</Route>
 
 				<Route element={<RouteGuard onlyAdmin={true} />}>
 					<Route path='/admin' element={<Admin />} />
@@ -58,9 +59,9 @@ const App = () => {
 		)
 	)
 
-	return (
-		<RouterProvider router={router} />
-	)
+	return (<>
+		{render && <RouterProvider router={router} />}
+	</>)
 }
 
 export default App
