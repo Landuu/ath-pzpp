@@ -57,10 +57,9 @@ const Layout = () => {
         if(item.id == 0) {
             navigate('/admin');
         } else if (item.id == 1) {
-            showToast('Twój profil');
             navigate('/profile');
         } else if (item.id == 2) {
-            showToast('Twoje zamówienia');
+            navigate('/orders');
         } else if (item.id == 3) {
             logoutUser();
         }

@@ -8,6 +8,7 @@ import { useUserContext } from "./hooks/useUserContext";
 import Layout from "./layout/Layout";
 import Admin from "./pages/Admin/Admin";
 import Index from "./pages/Index/Index";
+import Orders from "./pages/Orders/Orders";
 import Profile from "./pages/Profile/Profile";
 
 
@@ -50,6 +51,7 @@ const App = () => {
 
 				<Route element={<RouteGuard />}>
 					<Route path='/profile' element={<Profile />} />
+					<Route path='/orders' element={<Orders />} />
 				</Route>
 
 				<Route element={<RouteGuard onlyAdmin={true} />}>
