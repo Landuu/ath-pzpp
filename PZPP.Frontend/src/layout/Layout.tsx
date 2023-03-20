@@ -25,7 +25,7 @@ const getDropdownOptions = (isAdmin?: boolean) => {
     const profileDropdownOptions: ProfileDropdownOption[] = [
         {
             id: 1,
-            text: 'Twój profil',
+            text: 'Twoje konto',
             icon: 'user'
         },
         {
@@ -57,7 +57,7 @@ const Layout = () => {
         if(item.id == 0) {
             navigate('/admin');
         } else if (item.id == 1) {
-            navigate('/profile');
+            navigate('/account');
         } else if (item.id == 2) {
             navigate('/orders');
         } else if (item.id == 3) {

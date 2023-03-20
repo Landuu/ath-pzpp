@@ -9,7 +9,7 @@ import Layout from "./layout/Layout";
 import Admin from "./pages/Admin/Admin";
 import Index from "./pages/Index/Index";
 import Orders from "./pages/Orders/Orders";
-import Profile from "./pages/Profile/Profile";
+import Account from "./pages/Account/Account";
 
 
 const App = () => {
@@ -50,7 +50,7 @@ const App = () => {
 				<Route index element={<Index />} />
 
 				<Route element={<RouteGuard />}>
-					<Route path='/profile' element={<Profile />} />
+					<Route path='/account' element={<Account />} />
 					<Route path='/orders' element={<Orders />} />
 				</Route>
 
