@@ -8,6 +8,7 @@ import { useToast } from "../hooks/useToast";
 import { useUserContext } from "../hooks/useUserContext";
 import LoginModal from "./components/LoginModal";
 import { atomRenderLogin, atomShowLogin } from "./layoutAtoms";
+import logo from '../assets/logo.png';
 
 type ProfileDropdownOption = {
     id: number
@@ -68,7 +69,7 @@ const Layout = () => {
     return (<>
         <nav className="w-full px-20 py-3 shadow-lg flex justify-between">
             <div className="flex items-center space-x-3">
-                <span className="font-mono text-xl mr-5">VOLCIK</span>
+                <img src={logo} className="h-9 mr-5" />
                 <Link to='/'>
                     <Button text='Strona główna' />
                 </Link>
