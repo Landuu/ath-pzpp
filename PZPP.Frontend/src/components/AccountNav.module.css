@@ -1,0 +1,8 @@
+
+.link {
+    @apply hover:bg-gray-200 px-3 py-2 flex items-center;
+}
+
+:global(.active).link {
+    @apply bg-gray-100;
+}
