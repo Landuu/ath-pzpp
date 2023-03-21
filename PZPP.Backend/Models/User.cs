@@ -8,14 +8,12 @@
 
         public string PasswordHash { get; set; }
 
-        public string FirstName { get; set; }
-
-        public string LastName { get; set; }
+        public string? RefreshToken { get; set; }
 
         public DateTime RegisterDate { get; set; }
 
         public DateTime? LastLogin { get; set; }
 
-        public UserToken? UserToken { get; set; }
+        public UserInfo UserInfo { get; set; }
     }
 }

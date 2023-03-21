@@ -1,15 +1,39 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, TextBox } from "devextreme-react";
+import {
+    EmailRule, RequiredRule, Validator
+} from 'devextreme-react/validator';
 import { useState } from "react";
 import { IoHome, IoPerson, IoPersonOutline } from "react-icons/io5";
+import { axiosAuth } from "../../axiosClient";
 import AccountNav from "../../components/AccountNav";
 import Container from "../../components/Container";
 import { useUserContext } from "../../hooks/useUserContext";
-
+import { UserAccountDto } from "../../types";
 
 const Account = () => {
-    const { user } = useUserContext();
+    const { user, refreshUser } = useUserContext();
     const [isEditUser, setIsEditUser] = useState(false);
+    const [isEditUserLoading, setIsEditUserLoading] = useState(false);
     const [isEditAddress, setIsEditAddress] = useState(false);
+    const queryClient = useQueryClient();
+    const { data } = useQuery<UserAccountDto>({ queryKey: ['account'], queryFn: async () => (await axiosAuth.get('/api/account')).data });
+
+    const infoMutation = useMutation({
+        mutationFn: (data: FormData) => {
+            setIsEditUserLoading(true);
+            return axiosAuth.post('/api/account', data);
+        },
+        onSuccess: () => {
+            refreshUser();
+            setIsEditUser(false);
+            queryClient.invalidateQueries(['account']);
+        },
+        onSettled: () => {
+            setIsEditUserLoading(false);
+        }
+    })
+
 
     return (
         <Container className="my-8">
@@ -22,14 +46,18 @@ const Account = () => {
                 <AccountNav />
 
                 <div className="w-full flex flex-col space-y-10 border p-8">
-                    <div>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        infoMutation.mutate(formData);
+                    }}>
                         <div className="text-2xl mb-2 flex space-x-5 items-center">
                             <div>Dane osobowe</div>
                             <div className="space-x-3">
                                 {!isEditUser && <Button text='Edytuj' onClick={() => setIsEditUser(true)} />}
                                 {isEditUser && <>
-                                    <Button text='Anuluj' onClick={() => setIsEditUser(false)} />
-                                    <Button text="Zapisz" type="success" />
+                                    <Button text='Anuluj' onClick={() => setIsEditUser(false)} disabled={isEditUserLoading} />
+                                    <Button useSubmitBehavior={true} text="Zapisz" type="success" disabled={isEditUserLoading} />
                                 </>}
                             </div>
                         </div>
@@ -40,21 +68,35 @@ const Account = () => {
                             </div>
                             <div>
                                 <UserDetail title="Login:" value={user?.Login} />
-                                <UserDetail title="Imię i nazwisko:" value={user?.Name} />
-                                <UserDetail title="Adres e-mail:" value='-' />
-                                <UserDetail title="Telefon:" value='-' />
+                                <UserDetail title="Imię i nazwisko:" value={data?.Name} />
+                                <UserDetail title="Adres e-mail:" value={data?.Email ?? '-'} />
+                                <UserDetail title="Telefon:" value={data?.Phone ?? '-'} />
                             </div>
                         </div>
 
                         {isEditUser &&
                             <div className="pl-24 w-96 space-y-3">
-                                <TextBox label="Imię" defaultValue={user?.FirstName} />
-                                <TextBox label="Nazwisko" defaultValue={user?.LastName} />
-                                <TextBox label="Adres e-mail" />
-                                <TextBox label="Telefon" />
+                                <TextBox label="Imię" name='FirstName' defaultValue={data?.FirstName} disabled={isEditUserLoading}>
+                                    <Validator>
+                                        <RequiredRule />
+                                    </Validator>
+                                </TextBox>
+                                <TextBox label="Nazwisko" name='LastName' defaultValue={data?.LastName} disabled={isEditUserLoading}>
+                                    <Validator>
+                                        <RequiredRule />
+                                    </Validator>
+                                </TextBox>
+                                <TextBox label="Adres e-mail" name='Email' defaultValue={data?.Email} disabled={isEditUserLoading}>
+                                    <Validator>
+                                        <EmailRule />
+                                    </Validator>
+                                </TextBox>
+                                <TextBox label="Telefon" name='Phone' defaultValue={data?.Phone} disabled={isEditUserLoading}>
+
+                                </TextBox>
                             </div>
                         }
-                    </div>
+                    </form>
 
                     <div>
                         <div className="text-2xl mb-2 flex space-x-5">
@@ -73,9 +115,9 @@ const Account = () => {
                                 <IoHome className="text-5xl text-gray-500" />
                             </div>
                             <div>
-                                <UserDetail title="Ulica i numer:" value="ul. Mostowa 34" />
-                                <UserDetail title="Kod pocztowy:" value="34-321" />
-                                <UserDetail title="Miejscowość:" value="Żywiec" />
+                                <UserDetail title="Ulica i numer:" value={data?.Street ?? '-'} />
+                                <UserDetail title="Kod pocztowy:" value={data?.PostCode ?? '-'} />
+                                <UserDetail title="Miejscowość:" value={data?.City ?? '-'} />
                             </div>
                         </div>
 

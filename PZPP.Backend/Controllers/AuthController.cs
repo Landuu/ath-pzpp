@@ -40,10 +40,9 @@ namespace PZPP.Backend.Controllers
         public async Task<IResult> GetToken([FromBody] LoginDto dto)
         {
             dto.Login = dto.Login.ToLower();
-            User? user = _context.Users.Include(x => x.UserToken).FirstOrDefault(x => x.Login == dto.Login);
+            User? user = _context.Users.FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return Results.BadRequest();
 
-            //TODO: Add password hashing
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
             if (!isPasswordValid) return Results.BadRequest();
 
@@ -52,7 +51,7 @@ namespace PZPP.Backend.Controllers
             string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
             string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
 
-            user.UserToken = new() { RefreshToken = refreshToken };
+            user.RefreshToken = refreshToken;
             await _context.SaveChangesAsync();
 
             Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
@@ -76,10 +75,10 @@ namespace PZPP.Backend.Controllers
             // Extract info from token
             var tokenObject = tokenHandler.ReadJwtToken(refreshToken);
             int uid = Convert.ToInt32(tokenObject.Claims.FirstOrDefault(x => x.Type == ClaimKeys.UID)?.Value);
-            User? user = _context.Users.Include(x => x.UserToken).FirstOrDefault(x => x.Id == uid);
+            User? user = _context.Users.FirstOrDefault(x => x.Id == uid);
 
             // Forbid if no user or token changed
-            if (user == null || user.UserToken == null || user.UserToken.RefreshToken != refreshToken)
+            if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
                 return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
 
             var claims = CreateClaims(user);
@@ -98,13 +97,17 @@ namespace PZPP.Backend.Controllers
             DateTime now = DateTime.Now;
             User user = new()
             {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
                 Login = dto.Login,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RegisterDate = now,
                 LastLogin = now
             };
+            UserInfo userInfo = new()
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName
+            };
+            user.UserInfo = userInfo;
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
@@ -112,7 +115,7 @@ namespace PZPP.Backend.Controllers
             var refreshClaims = CreateRefreshClaims(user);
             string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
             string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
-            user.UserToken = new() { RefreshToken = refreshToken };
+            user.RefreshToken = refreshToken;
 
             await _context.SaveChangesAsync();
             Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
@@ -125,7 +128,10 @@ namespace PZPP.Backend.Controllers
         public async Task<IResult> GetUser()
         {
             string? uid = User.FindFirstValue(ClaimKeys.UID);
-            User? user = await _context.Users.FindAsync(Convert.ToInt32(uid));
+            int userId = Convert.ToInt32(uid);
+            User? user = await _context.Users
+                .Include(x => x.UserInfo)
+                .FirstOrDefaultAsync(x => x.Id == userId);
             UserContextDto dto = _mapper.Map<UserContextDto>(user);
             if (user == null) return Results.BadRequest();
             return Results.Json(dto);

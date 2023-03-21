@@ -19,12 +19,12 @@ namespace PZPP.Backend.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
-                .HasOne(u => u.UserToken)
-                .WithOne(t => t.User)
-                .HasForeignKey<UserToken>(t => t.UserId);
+                .HasOne(u => u.UserInfo)
+                .WithOne(i => i.User)
+                .HasForeignKey<UserInfo>(i => i.UserId);
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<UserToken> UserTokens { get; set; }
+        public DbSet<UserInfo> UserInfo { get; set; }
     }
 }
