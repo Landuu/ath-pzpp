@@ -33,8 +33,8 @@ namespace PZPP.Backend.Controllers
             return Results.Json(dto);
         }
 
-        [HttpPost]
-        public async Task<IResult> PostAccountInfo([FromForm] PutAccountInfoDto dto)
+        [HttpPut]
+        public async Task<IResult> PutAccountInfo([FromForm] PutAccountInfoDto dto)
         {
             int uid = User.GetUID();
             User? user = await _context.Users.Include(x => x.UserInfo).FirstOrDefaultAsync(x => x.Id == uid);
@@ -44,6 +44,21 @@ namespace PZPP.Backend.Controllers
             user.UserInfo.LastName = dto.LastName;
             user.UserInfo.Email = dto.Email;
             user.UserInfo.Phone = dto.Phone;
+            await _context.SaveChangesAsync();
+
+            return Results.Ok();
+        }
+
+        [HttpPut("address")]
+        public async Task<IResult> PutAccountAddress([FromForm] PutAccountAddressDto dto)
+        {
+            int uid = User.GetUID();
+            User? user = await _context.Users.Include(x => x.UserInfo).FirstOrDefaultAsync(x => x.Id == uid);
+            if (user == null) return Results.Forbid();
+
+            user.UserInfo.Street= dto.Street;
+            user.UserInfo.PostCode = dto.PostCode;
+            user.UserInfo.City= dto.City;
             await _context.SaveChangesAsync();
 
             return Results.Ok();

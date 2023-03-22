@@ -80,7 +80,7 @@ const Layout = () => {
                         <DropDownButton
                             text={user.Name}
                             icon="user"
-                            width={200}
+                            width='auto'
                             items={dropdownOptions}
                             onItemClick={handleDropdownClick}
                         />

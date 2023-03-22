@@ -10,8 +10,10 @@ namespace PZPP.Backend.Dto.User
         [MinLength(1), MaxLength(32)]
         public string LastName { get; set; }
 
-        public string? Email { get; set; }
+        [MinLength(1), MaxLength(255)]
+        public string Email { get; set; }
 
-        public string? Phone { get; set; }
+        [MinLength(9), MaxLength(9)]
+        public string Phone { get; set; }
     }
 }

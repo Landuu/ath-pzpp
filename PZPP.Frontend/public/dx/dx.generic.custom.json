@@ -1,0 +1,18 @@
+{
+    "items": [
+        {
+            "key": "$base-border-color",
+            "value": "rgba(207, 207, 207, 1)"
+        },
+        {
+            "key": "$base-accent",
+            "value": "rgba(33, 158, 188, 1)"
+        }
+    ],
+    "baseTheme": "generic.light",
+    "outputColorScheme": "custom",
+    "makeSwatch": false,
+    "version": "22.2.4",
+    "widgets": [],
+    "removeExternalResources": false
+}

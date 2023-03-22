@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, TextBox } from "devextreme-react";
+import { StringLengthRule } from "devextreme-react/data-grid";
 import {
     EmailRule, RequiredRule, Validator
 } from 'devextreme-react/validator';
@@ -16,13 +17,14 @@ const Account = () => {
     const [isEditUser, setIsEditUser] = useState(false);
     const [isEditUserLoading, setIsEditUserLoading] = useState(false);
     const [isEditAddress, setIsEditAddress] = useState(false);
+    const [isEditAddressLoading, setIsEditAddressLoading] = useState(false);
     const queryClient = useQueryClient();
     const { data } = useQuery<UserAccountDto>({ queryKey: ['account'], queryFn: async () => (await axiosAuth.get('/api/account')).data });
 
     const infoMutation = useMutation({
         mutationFn: (data: FormData) => {
             setIsEditUserLoading(true);
-            return axiosAuth.post('/api/account', data);
+            return axiosAuth.put('/api/account', data);
         },
         onSuccess: () => {
             refreshUser();
@@ -32,7 +34,21 @@ const Account = () => {
         onSettled: () => {
             setIsEditUserLoading(false);
         }
-    })
+    });
+
+    const addressMutation = useMutation({
+        mutationFn: (data: FormData) => {
+            setIsEditAddressLoading(true);
+            return axiosAuth.put('/api/account/address', data);
+        },
+        onSuccess: () => {
+            setIsEditAddress(false);
+            queryClient.invalidateQueries(['account']);
+        },
+        onSettled: () => {
+            setIsEditAddressLoading(false);
+        }
+    });
 
 
     return (
@@ -75,37 +91,47 @@ const Account = () => {
                         </div>
 
                         {isEditUser &&
-                            <div className="pl-24 w-96 space-y-3">
+                            <div className="pl-24 w-96 space-y-4">
                                 <TextBox label="Imię" name='FirstName' defaultValue={data?.FirstName} disabled={isEditUserLoading}>
                                     <Validator>
                                         <RequiredRule />
+                                        <StringLengthRule max={32} />
                                     </Validator>
                                 </TextBox>
                                 <TextBox label="Nazwisko" name='LastName' defaultValue={data?.LastName} disabled={isEditUserLoading}>
                                     <Validator>
                                         <RequiredRule />
+                                        <StringLengthRule max={32} />
                                     </Validator>
                                 </TextBox>
                                 <TextBox label="Adres e-mail" name='Email' defaultValue={data?.Email} disabled={isEditUserLoading}>
                                     <Validator>
+                                        <RequiredRule />
                                         <EmailRule />
                                     </Validator>
                                 </TextBox>
                                 <TextBox label="Telefon" name='Phone' defaultValue={data?.Phone} disabled={isEditUserLoading}>
-
+                                    <Validator>
+                                        <RequiredRule />
+                                        <StringLengthRule min={9} max={9} />
+                                    </Validator>
                                 </TextBox>
                             </div>
                         }
                     </form>
 
-                    <div>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        addressMutation.mutate(formData);
+                    }}>
                         <div className="text-2xl mb-2 flex space-x-5">
                             <div>Adres dostawy</div>
                             <div className="space-x-3 flex items-center">
                                 {!isEditAddress && <Button text='Edytuj' onClick={() => setIsEditAddress(true)} />}
                                 {isEditAddress && <>
-                                    <Button text='Anuluj' onClick={() => setIsEditAddress(false)} />
-                                    <Button text="Zapisz" type="success" />
+                                    <Button text='Anuluj' onClick={() => setIsEditAddress(false)} disabled={isEditAddressLoading} />
+                                    <Button text="Zapisz" type="success" useSubmitBehavior={true} disabled={isEditAddressLoading} />
                                 </>}
                             </div>
                         </div>
@@ -122,17 +148,27 @@ const Account = () => {
                         </div>
 
                         {isEditAddress &&
-                            <div className="pl-24 w-96 space-y-3">
-                                <TextBox label="Ulica i numer" />
-                                <TextBox label="Kod pocztowy" />
-                                <TextBox label="Miejscowość" />
+                            <div className="pl-24 w-96 space-y-4">
+                                <TextBox label="Ulica i numer" name="Street" defaultValue={data?.Street} disabled={isEditAddressLoading}>
+                                    <Validator>
+                                        <RequiredRule />
+                                    </Validator>
+                                </TextBox>
+                                <TextBox label="Kod pocztowy" name="PostCode" defaultValue={data?.PostCode} disabled={isEditAddressLoading}>
+                                    <Validator> 
+                                        <RequiredRule />
+                                    </Validator>
+                                </TextBox>
+                                <TextBox label="Miejscowość" name="City" defaultValue={data?.City} disabled={isEditAddressLoading}>
+                                    <Validator>
+                                        <RequiredRule />
+                                    </Validator>
+                                </TextBox>
                             </div>
                         }
-                    </div>
+                    </form>
                 </div>
-
             </div>
-
         </Container>
     );
 }
