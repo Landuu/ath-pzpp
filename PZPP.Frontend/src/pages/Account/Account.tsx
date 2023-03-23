@@ -73,7 +73,7 @@ const Account = () => {
                                 {!isEditUser && <Button text='Edytuj' onClick={() => setIsEditUser(true)} />}
                                 {isEditUser && <>
                                     <Button text='Anuluj' onClick={() => setIsEditUser(false)} disabled={isEditUserLoading} />
-                                    <Button useSubmitBehavior={true} text="Zapisz" type="success" disabled={isEditUserLoading} />
+                                    <Button useSubmitBehavior={true} text="Zapisz" type="default" disabled={isEditUserLoading} />
                                 </>}
                             </div>
                         </div>
@@ -131,7 +131,7 @@ const Account = () => {
                                 {!isEditAddress && <Button text='Edytuj' onClick={() => setIsEditAddress(true)} />}
                                 {isEditAddress && <>
                                     <Button text='Anuluj' onClick={() => setIsEditAddress(false)} disabled={isEditAddressLoading} />
-                                    <Button text="Zapisz" type="success" useSubmitBehavior={true} disabled={isEditAddressLoading} />
+                                    <Button text="Zapisz" type="default" useSubmitBehavior={true} disabled={isEditAddressLoading} />
                                 </>}
                             </div>
                         </div>
