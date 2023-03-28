@@ -53,11 +53,11 @@ const App = () => {
 				<Route index element={<Index />} />
 				<Route path='/products' element={<Products />} />
 				<Route path='/product' element={<Product />} />
+				<Route path='/cart' element={<Cart />} />
 
 				<Route element={<RouteGuard />}>
 					<Route path='/account' element={<Account />} />
 					<Route path='/orders' element={<Orders />} />
-					<Route path='/cart' element={<Cart />} />
 				</Route>
 
 				<Route element={<RouteGuard onlyAdmin={true} />}>

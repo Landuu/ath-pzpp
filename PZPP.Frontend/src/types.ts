@@ -30,3 +30,8 @@ export type UserAccountDto = {
     PostCode: string | null
     City: string | null
 }
+
+export type CartProduct = {
+    ProductId: number,
+    Quantity: number
+}

@@ -1,10 +1,29 @@
 import { Button } from "devextreme-react/button";
 import { NumberBox } from 'devextreme-react/number-box';
+import { useAtom } from "jotai";
+import { useState } from "react";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
+import { atomCart } from "../../atoms";
 import Container from "../../components/Container";
+import { useToast } from "../../hooks/useToast";
+import { CartProduct } from "../../types";
 
 const Product = () => {
+    const [quantity, setQuantity] = useState(1);
+    const [cart, setCart] = useAtom(atomCart);
+    const showToast = useToast();
+
+    const handleAddToCart = () => {
+        const newItem: CartProduct = {
+            ProductId: 1,
+            Quantity: quantity
+        };
+        setCart([...cart, newItem]);
+        setQuantity(1);
+        showToast(`Dodano ${quantity} szt. do koszyka!`, "success");
+    }
+
     return (
         <Container className="my-10">
             <div className="mb-3">
@@ -41,15 +60,16 @@ const Product = () => {
                         </div>
                         <div className="flex justify-end items-end space-x-2">
                             <NumberBox
-                                defaultValue={1}
                                 min={1}
                                 max={20}
                                 width={120}
                                 showSpinButtons={true}
                                 className='py-1'
                                 label="Ilość sztuk"
+                                value={quantity}
+                                onValueChanged={(e) => setQuantity(e.value)}
                             />
-                            <Button text="Dodaj do koszyka" type='default' icon="cart" className="px-3 py-1" />
+                            <Button text="Dodaj do koszyka" type='default' icon="cart" className="px-3 py-1" onClick={handleAddToCart} />
                         </div>
                     </div>
                 </div>

@@ -3,10 +3,11 @@ import DropDownButton from "devextreme-react/drop-down-button";
 import { Menu } from "devextreme-react/menu";
 import Popup from "devextreme-react/popup";
 import { ItemClickEvent } from "devextreme/ui/drop_down_button";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { IoBagOutline, IoChevronDown, IoCubeOutline, IoHomeOutline, IoLink, IoLinkOutline } from "react-icons/io5";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import logo from '../assets/logo.png';
+import { atomCart } from "../atoms";
 import { useToast } from "../hooks/useToast";
 import { useUserContext } from "../hooks/useUserContext";
 import LoginModal from "./components/LoginModal";
@@ -96,6 +97,7 @@ const getDropdownOptions = (isAdmin?: boolean) => {
     return profileDropdownOptions;
 }
 
+
 const Layout = () => {
     const { user, logoutUser } = useUserContext();
     const showToast = useToast();
@@ -103,6 +105,8 @@ const Layout = () => {
     const [renderLogin, setRenderLogin] = useAtom(atomRenderLogin);
     const navigate = useNavigate();
     const dropdownOptions = getDropdownOptions(user?.IsAdmin);
+    const cart = useAtomValue(atomCart);
+
 
     const handleDropdownClick = (e: ItemClickEvent) => {
         const item: ProfileDropdownOption = e.itemData;
@@ -129,25 +133,22 @@ const Layout = () => {
                     itemComponent={MenuItem}
                 />
             </div>
-            <div>
+            <div className="flex space-x-2">
+                <Link to='/cart'>
+                    <Button icon="cart" text={`Koszyk (${cart.length})`} />
+                </Link>
                 {user
                     ? <>
-                        <div className="flex space-x-2">
-                            <Link to='/cart'>
-                                <Button icon="cart" text='Koszyk (0)' />
-                            </Link>
-                            <div>
-                                <DropDownButton
-                                    text={user.Name}
-                                    icon="user"
-                                    width='auto'
-                                    items={dropdownOptions}
-                                    onItemClick={handleDropdownClick}
-                                />
-                            </div>
+                        <div>
+                            <DropDownButton
+                                text={user.Name}
+                                icon="user"
+                                width='auto'
+                                items={dropdownOptions}
+                                onItemClick={handleDropdownClick}
+                            />
                         </div>
                     </>
-
                     : <Button type="default" icon='unlock' text="Logowanie" onClick={() => { setRenderLogin(true); setShowLogin(true); }} />
                 }
             </div>
