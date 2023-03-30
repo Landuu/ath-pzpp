@@ -8,6 +8,11 @@ export default defineConfig({
     outDir: '../PZPP.Backend/wwwroot',
     emptyOutDir: true
   },
+  resolve: {
+    alias: {
+        "devextreme/ui": 'devextreme/esm/ui'
+    }
+  },
   server: {
     proxy: {
       '/api': {

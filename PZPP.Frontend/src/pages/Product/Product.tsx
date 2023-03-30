@@ -15,13 +15,20 @@ const Product = () => {
     const showToast = useToast();
 
     const handleAddToCart = () => {
-        const newItem: CartProduct = {
-            ProductId: 1,
-            Quantity: quantity
-        };
-        setCart([...cart, newItem]);
+        const itemIndex = cart.findIndex(x => x.ProductId == 1);
+        if(itemIndex != -1) {
+            cart[itemIndex].Quantity += quantity;
+            setCart(cart);
+        } else {
+            const newItem: CartProduct = {
+                ProductId: 1,
+                Quantity: quantity
+            };
+            setCart([...cart, newItem]);
+        }
         setQuantity(1);
         showToast(`Dodano ${quantity} szt. do koszyka!`, "success");
+        console.log(cart);
     }
 
     return (

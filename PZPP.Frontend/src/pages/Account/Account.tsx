@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, TextBox } from "devextreme-react";
+import { Button  } from "devextreme-react/button";
+import { TextBox } from "devextreme-react/text-box";
 import { StringLengthRule } from "devextreme-react/data-grid";
 import {
     EmailRule, RequiredRule, Validator

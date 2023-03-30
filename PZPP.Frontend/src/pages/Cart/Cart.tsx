@@ -5,7 +5,7 @@ import { atomCart } from "../../atoms";
 import Container from "../../components/Container";
 import { useToast } from "../../hooks/useToast";
 import { useUserContext } from "../../hooks/useUserContext";
-import CartProduct from "./CartProduct";
+import CartProductElement from "./CartProduct";
 
 const Cart = () => {
     const { user } = useUserContext();
@@ -23,7 +23,7 @@ const Cart = () => {
     }
 
     return (
-        <Container className='my-10 px-40 space-y-5'>
+        <Container className='my-10 space-y-5'>
             <div className="flex items-center justify-between">
                 <div className="text-2xl flex items-center space-x-1">
                     <IoCartOutline />
@@ -36,9 +36,12 @@ const Cart = () => {
 
             <div className="flex border">
                 <div className="w-full p-5">
-                    <CartProduct />
-                    <CartProduct />
-                    <CartProduct />
+                    {cart.length == 0 && <>
+                        <div>
+                            Brak produktów w koszyku!
+                        </div>
+                    </>}
+                    { cart.map((product, index) => <CartProductElement product={product} key={index} />)}
                 </div>
                 <div className="p-5 m-2 border">
                     <div className="font-medium text-gray-700 text-xl">Podsumowanie:</div>
@@ -47,7 +50,7 @@ const Cart = () => {
                         <div className="font-medium">777zł</div>
                     </div>
                     <div className="mt-3">
-                        <Button icon="cart" text="Złóż zamówienie" type="success" onClick={handleFinalize} disabled={!user} />
+                        <Button icon="cart" text="Złóż zamówienie" type="success" onClick={handleFinalize} disabled={!user || cart.length == 0} />
                     </div>
                     {!user &&
                         <div className="text-sm mt-1 text-red-400 font-medium">
