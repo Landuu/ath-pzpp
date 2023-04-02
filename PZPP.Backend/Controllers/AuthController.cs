@@ -132,8 +132,8 @@ namespace PZPP.Backend.Controllers
             User? user = await _context.Users
                 .Include(x => x.UserInfo)
                 .FirstOrDefaultAsync(x => x.Id == userId);
-            UserContextDto dto = _mapper.Map<UserContextDto>(user);
             if (user == null) return Results.BadRequest();
+            UserContextDto dto = _mapper.Map<UserContextDto>(user);
             return Results.Json(dto);
         }
 
