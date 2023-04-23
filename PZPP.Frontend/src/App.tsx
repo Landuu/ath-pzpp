@@ -10,6 +10,9 @@ import Admin from "./pages/Admin/Admin";
 import Index from "./pages/Index/Index";
 import Orders from "./pages/Orders/Orders";
 import Account from "./pages/Account/Account";
+import Products from "./pages/Products/Products";
+import Product from "./pages/Product/Product";
+import Cart from "./pages/Cart/Cart";
 
 
 const App = () => {
@@ -27,7 +30,7 @@ const App = () => {
 			}
 
 			try {
-				const resRefresh = await axios.get('/api/auth/refresh');
+				const res = await axios.get('/api/auth/refresh');
 				return axios(error.response.config);
 			} catch (error) {
 				return Promise.reject(error);
@@ -48,6 +51,9 @@ const App = () => {
 		createRoutesFromElements(
 			<Route element={<Layout />}>
 				<Route index element={<Index />} />
+				<Route path='/products' element={<Products />} />
+				<Route path='/product' element={<Product />} />
+				<Route path='/cart' element={<Cart />} />
 
 				<Route element={<RouteGuard />}>
 					<Route path='/account' element={<Account />} />

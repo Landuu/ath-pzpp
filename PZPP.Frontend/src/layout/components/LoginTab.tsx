@@ -1,5 +1,7 @@
 import axios from "axios";
-import { Button, TextBox, Validator } from "devextreme-react";
+import { Button } from "devextreme-react/button";
+import { Validator } from "devextreme-react/validator";
+import { TextBox} from "devextreme-react/text-box";
 import { RequiredRule, StringLengthRule } from "devextreme-react/validator";
 import { useSetAtom } from "jotai";
 import { useState } from "react";
