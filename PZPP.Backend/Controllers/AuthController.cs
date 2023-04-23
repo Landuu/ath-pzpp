@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 using PZPP.Backend.Database;
 using PZPP.Backend.Dto.Auth;
 using PZPP.Backend.Models;
+using PZPP.Backend.Services.Auth;
 using PZPP.Backend.Utils;
 using PZPP.Backend.Utils.Results;
 using PZPP.Backend.Utils.Settings;
@@ -22,40 +23,32 @@ namespace PZPP.Backend.Controllers
         private readonly IMapper _mapper;
         private readonly JWTSettings _jwtSettings;
         private readonly JWTHelper _jwtHelper;
-        private readonly CookieOptions _cookieOptions;
+        private readonly IAuthService _authService;
 
-        public AuthController(ApiContext context, IConfiguration configuration, IMapper mapper)
+        public AuthController(ApiContext context, IOptions<JWTSettings> jwtSettings, IMapper mapper, IAuthService authService)
         {
             _context = context;
             _mapper = mapper;
-            _cookieOptions = new() { HttpOnly = true };
 
-            var jwtSettings = configuration.GetSection("JWT").Get<JWTSettings>();
-            if (jwtSettings == null) throw new ArgumentNullException(nameof(jwtSettings));
-            _jwtSettings = jwtSettings;
-            _jwtHelper = new(jwtSettings);
+            _jwtSettings = jwtSettings.Value;
+            _jwtHelper = new(jwtSettings.Value);
+            _authService = authService;
         }
 
         [HttpPost]
         public async Task<IResult> GetToken([FromBody] LoginDto dto)
         {
-            dto.Login = dto.Login.ToLower();
             User? user = _context.Users.FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return Results.BadRequest();
 
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            bool isPasswordValid = _authService.ValidatePassword(user, dto.Password);
             if (!isPasswordValid) return Results.BadRequest();
 
-            var claims = CreateClaims(user);
-            var refreshClaims = CreateRefreshClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
-
-            user.RefreshToken = refreshToken;
+            var tokenPair = _authService.GenerateTokens(user);
+            user.RefreshToken = tokenPair.Refresh;
+            Response.Cookies.Append(_jwtSettings.CookieKey, tokenPair.Access, _authService.CookieOptions);
+            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, tokenPair.Refresh, _authService.CookieOptions);
             await _context.SaveChangesAsync();
-
-            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
-            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, refreshToken, _cookieOptions);
             return Results.Ok();
         }
 
@@ -65,25 +58,22 @@ namespace PZPP.Backend.Controllers
         {
             string? refreshToken = Request.Cookies[_jwtSettings.RefreshCookieKey];
             if (refreshToken == null) return Results.Unauthorized();
-            var tokenHandler = new JwtSecurityTokenHandler();
 
             // Validate provided token
-            TokenValidationResult validationResult = await tokenHandler.ValidateTokenAsync(refreshToken, _jwtHelper.GetValidationParameters());
-            if (!validationResult.IsValid)
+            bool isRefreshTokenValid = await _authService.ValidateRefreshToken(refreshToken);
+            if (!isRefreshTokenValid)
                 return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
 
             // Extract info from token
-            var tokenObject = tokenHandler.ReadJwtToken(refreshToken);
-            int uid = Convert.ToInt32(tokenObject.Claims.FirstOrDefault(x => x.Type == ClaimKeys.UID)?.Value);
-            User? user = _context.Users.FirstOrDefault(x => x.Id == uid);
+            int userId = _authService.GetUserIdFromToken(refreshToken);
+            User? user = _context.Users.FirstOrDefault(x => x.Id == userId);
 
             // Forbid if no user or token changed
             if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
                 return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
 
-            var claims = CreateClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
+            string token = _authService.GenerateRefreshToken(user);
+            Response.Cookies.Append(_jwtSettings.CookieKey, token, _authService.CookieOptions);
             return Results.Ok();
         }
 
@@ -118,8 +108,8 @@ namespace PZPP.Backend.Controllers
             user.RefreshToken = refreshToken;
 
             await _context.SaveChangesAsync();
-            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
-            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, refreshToken, _cookieOptions);
+            Response.Cookies.Append(_jwtSettings.CookieKey, token, _authService.CookieOptions);
+            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, refreshToken, _authService.CookieOptions);
             return Results.Ok();
         }
 
