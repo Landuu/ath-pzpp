@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using PZPP.Backend.Database;
 using PZPP.Backend.Services.Auth;
-using PZPP.Backend.Utils;
-using PZPP.Backend.Utils.Settings;
+using PZPP.Backend.Utils.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +32,7 @@ builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.P
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IAuthService, AuthService>();
 
 var app = builder.Build();
 

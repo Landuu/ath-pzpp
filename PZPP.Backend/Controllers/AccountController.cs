@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PZPP.Backend.Database;
 using PZPP.Backend.Dto.User;
 using PZPP.Backend.Models;
-using PZPP.Backend.Utils;
+using PZPP.Backend.Utils.Auth;
 
 namespace PZPP.Backend.Controllers
 {
@@ -26,7 +25,7 @@ namespace PZPP.Backend.Controllers
         public async Task<IResult> GetAccountInfo()
         {
             int uid = User.GetUID();
-            User? user = await _context.Users.Include(x => x.UserInfo).FirstOrDefaultAsync(x => x.Id== uid);
+            User? user = await _context.Users.Include(x => x.UserInfo).FirstOrDefaultAsync(x => x.Id == uid);
             if (user == null) return Results.Forbid();
 
             UserAccountDto dto = _mapper.Map<UserAccountDto>(user.UserInfo);
@@ -56,9 +55,9 @@ namespace PZPP.Backend.Controllers
             User? user = await _context.Users.Include(x => x.UserInfo).FirstOrDefaultAsync(x => x.Id == uid);
             if (user == null) return Results.Forbid();
 
-            user.UserInfo.Street= dto.Street;
+            user.UserInfo.Street = dto.Street;
             user.UserInfo.PostCode = dto.PostCode;
-            user.UserInfo.City= dto.City;
+            user.UserInfo.City = dto.City;
             await _context.SaveChangesAsync();
 
             return Results.Ok();

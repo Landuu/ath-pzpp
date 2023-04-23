@@ -1,10 +1,7 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Extensions.Options;
 using PZPP.Backend.Models;
-using PZPP.Backend.Utils;
-using PZPP.Backend.Utils.Settings;
+using PZPP.Backend.Utils.Auth;
+using PZPP.Backend.Utils.JWT;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -14,8 +11,12 @@ namespace PZPP.Backend.Services.Auth
     {
         private readonly JWTSettings _jwtSettings;
         private readonly JWTHelper _jwtHelper;
-        
-        public CookieOptions CookieOptions { get; private set; } = new() { 
+        private readonly JwtSecurityTokenHandler _tokenHandler = new();
+
+        public string CookieKeyAccess { get; private set; }
+        public string CookieKeyRefresh { get; private set; }
+        public CookieOptions CookieOptions { get; private set; } = new()
+        {
             HttpOnly = true
         };
 
@@ -23,6 +24,9 @@ namespace PZPP.Backend.Services.Auth
         {
             _jwtSettings = jwtSettings.Value;
             _jwtHelper = new JWTHelper(jwtSettings.Value);
+
+            CookieKeyAccess = _jwtSettings.CookieKey;
+            CookieKeyRefresh = _jwtSettings.RefreshCookieKey;
         }
 
 
@@ -43,57 +47,44 @@ namespace PZPP.Backend.Services.Auth
 
         public string GenerateAccessToken(User user)
         {
-            var claims = CreateClaims(user);
+            var claims = new Claim[]
+            {
+                new(ClaimKeys.Login, user.Login.ToLower()),
+                new(ClaimKeys.UID, user.Id.ToString()),
+                new(ClaimTypes.Role, "User")
+            };
             return GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
         }
 
         public string GenerateRefreshToken(User user)
         {
-            var refreshClaims = CreateRefreshClaims(user);
-            return GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
+            var claims = new Claim[]
+            {
+                new(ClaimKeys.UID, user.Id.ToString())
+            };
+            return GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
         }
 
         public async Task<bool> ValidateRefreshToken(string refreshToken)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var validationResult = await tokenHandler.ValidateTokenAsync(refreshToken, _jwtHelper.GetValidationParameters());
+            var validationResult = await _tokenHandler.ValidateTokenAsync(refreshToken, _jwtHelper.GetValidationParameters());
             return validationResult.IsValid;
         }
 
         public int GetUserIdFromToken(string refreshToken)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenObject = tokenHandler.ReadJwtToken(refreshToken);
+            var tokenObject = _tokenHandler.ReadJwtToken(refreshToken);
             int uid = Convert.ToInt32(tokenObject.Claims.FirstOrDefault(x => x.Type == ClaimKeys.UID)?.Value);
             return uid;
         }
 
 
         // Private
-        private static Claim[] CreateClaims(User user)
-        {
-            return new Claim[]
-            {
-                new(ClaimKeys.Login, user.Login.ToLower()),
-                new(ClaimKeys.UID, user.Id.ToString()),
-                new(ClaimTypes.Role, "User")
-            };
-        }
-
-        private static Claim[] CreateRefreshClaims(User user)
-        {
-            return new Claim[]
-            {
-                new(ClaimKeys.UID, user.Id.ToString())
-            };
-        }
-
         private string GenerateToken(Claim[] claims, DateTime expire)
         {
             var tokenDescriptor = _jwtHelper.GetTokenDescriptor(claims, expire);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var token = _tokenHandler.CreateToken(tokenDescriptor);
+            return _tokenHandler.WriteToken(token);
         }
     }
 }

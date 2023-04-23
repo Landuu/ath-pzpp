@@ -1,4 +1,4 @@
-﻿namespace PZPP.Backend.Utils.Settings
+﻿namespace PZPP.Backend.Utils.JWT
 {
     public class JWTSettings
     {

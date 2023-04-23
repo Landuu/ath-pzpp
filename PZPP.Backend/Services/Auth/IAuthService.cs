@@ -5,6 +5,8 @@ namespace PZPP.Backend.Services.Auth
     public interface IAuthService
     {
         CookieOptions CookieOptions { get; }
+        string CookieKeyAccess { get; }
+        string CookieKeyRefresh { get; }
 
         string GenerateAccessToken(User user);
         string GenerateRefreshToken(User user);
