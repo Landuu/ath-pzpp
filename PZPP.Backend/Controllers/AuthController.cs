@@ -19,17 +19,12 @@ namespace PZPP.Backend.Controllers
     {
         private readonly ApiContext _context;
         private readonly IMapper _mapper;
-        // private readonly JWTSettings _jwtSettings;
-        private readonly JWTHelper _jwtHelper;
         private readonly IAuthService _authService;
 
         public AuthController(ApiContext context, IOptions<JWTSettings> jwtSettings, IMapper mapper, IAuthService authService)
         {
             _context = context;
             _mapper = mapper;
-
-            // _jwtSettings = jwtSettings.Value;
-            _jwtHelper = new(jwtSettings.Value);
             _authService = authService;
         }
 
