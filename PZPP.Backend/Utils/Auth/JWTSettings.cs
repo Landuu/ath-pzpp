@@ -12,7 +12,7 @@
 
         public string CookieKeyRefresh { get; set; }
 
-        public int TokenExpireDays { get; set; }
+        public int TokenExpireMinutes { get; set; }
 
         public int RefreshExpireDays { get; set; }
     }

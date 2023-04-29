@@ -21,7 +21,7 @@ namespace PZPP.Backend.Controllers
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
 
-        public AuthController(ApiContext context, IOptions<JWTSettings> jwtSettings, IMapper mapper, IAuthService authService)
+        public AuthController(ApiContext context, IMapper mapper, IAuthService authService)
         {
             _context = context;
             _mapper = mapper;
@@ -39,8 +39,8 @@ namespace PZPP.Backend.Controllers
 
             var tokenPair = _authService.GenerateTokens(user);
             user.RefreshToken = tokenPair.Refresh;
-            Response.Cookies.Append(_authService.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
-            Response.Cookies.Append(_authService.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
             await _context.SaveChangesAsync();
             return Results.Ok();
         }
@@ -49,21 +49,21 @@ namespace PZPP.Backend.Controllers
         [HttpGet("refresh")]
         public async Task<IResult> GetRefresh()
         {
-            string? refreshToken = Request.Cookies[_authService.CookieKeyRefresh];
+            string? refreshToken = Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
             if (refreshToken == null) return Results.Unauthorized();
 
             // Validate provided token
             bool isRefreshTokenValid = await _authService.ValidateRefreshToken(refreshToken);
             if (!isRefreshTokenValid)
-                return Results.Extensions.UnauthorizedDeleteCookie(_authService.CookieKeyRefresh, _authService.CookieKeyAccess);
+                return Results.Extensions.UnauthorizedDeleteCookie(_authService.JWTSettings.CookieKeyRefresh, _authService.JWTSettings.CookieKeyAccess);
 
             int userId = _authService.GetUserIdFromToken(refreshToken);
             User? user = _context.Users.FirstOrDefault(x => x.Id == userId);
             if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
-                return Results.Extensions.UnauthorizedDeleteCookie(_authService.CookieKeyRefresh, _authService.CookieKeyAccess);
+                return Results.Extensions.UnauthorizedDeleteCookie(_authService.JWTSettings.CookieKeyRefresh, _authService.JWTSettings.CookieKeyAccess);
 
             string token = _authService.GenerateAccessToken(user);
-            Response.Cookies.Append(_authService.CookieKeyAccess, token, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, token, _authService.CookieOptions);
             return Results.Ok();
         }
 
@@ -92,8 +92,8 @@ namespace PZPP.Backend.Controllers
 
             var tokenPair = _authService.GenerateTokens(user);
             user.RefreshToken = tokenPair.Refresh;
-            Response.Cookies.Append(_authService.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
-            Response.Cookies.Append(_authService.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
             await _context.SaveChangesAsync();
             return Results.Ok();
         }
@@ -114,8 +114,8 @@ namespace PZPP.Backend.Controllers
         [HttpGet("logout")]
         public IResult Logout()
         {
-            Response.Cookies.Delete(_authService.CookieKeyAccess);
-            Response.Cookies.Delete(_authService.CookieKeyRefresh);
+            Response.Cookies.Delete(_authService.JWTSettings.CookieKeyAccess);
+            Response.Cookies.Delete(_authService.JWTSettings.CookieKeyRefresh);
             return Results.Ok();
         }
 

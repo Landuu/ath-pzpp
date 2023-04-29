@@ -9,12 +9,10 @@ namespace PZPP.Backend.Services.Auth
 {
     public class AuthService : IAuthService
     {
-        private readonly JWTSettings _jwtSettings;
         private readonly JWTHelper _jwtHelper;
         private readonly JwtSecurityTokenHandler _tokenHandler = new();
 
-        public string CookieKeyAccess { get; private set; }
-        public string CookieKeyRefresh { get; private set; }
+        public JWTSettings JWTSettings { get; set; }
         public CookieOptions CookieOptions { get; private set; } = new()
         {
             HttpOnly = true
@@ -22,11 +20,9 @@ namespace PZPP.Backend.Services.Auth
 
         public AuthService(IOptions<JWTSettings> jwtSettings)
         {
-            _jwtSettings = jwtSettings.Value;
+            JWTSettings = jwtSettings.Value;
             _jwtHelper = new JWTHelper(jwtSettings.Value);
 
-            CookieKeyAccess = _jwtSettings.CookieKeyAccess;
-            CookieKeyRefresh = _jwtSettings.CookieKeyRefresh;
         }
 
 
@@ -53,7 +49,7 @@ namespace PZPP.Backend.Services.Auth
                 new(ClaimKeys.UID, user.Id.ToString()),
                 new(ClaimTypes.Role, "User")
             };
-            return GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
+            return GenerateToken(claims, DateTime.Now.AddMinutes(JWTSettings.TokenExpireMinutes));
         }
 
         public string GenerateRefreshToken(User user)
@@ -62,7 +58,7 @@ namespace PZPP.Backend.Services.Auth
             {
                 new(ClaimKeys.UID, user.Id.ToString())
             };
-            return GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
+            return GenerateToken(claims, DateTime.Now.AddMinutes(JWTSettings.RefreshExpireDays));
         }
 
         public async Task<bool> ValidateRefreshToken(string refreshToken)
@@ -71,9 +67,9 @@ namespace PZPP.Backend.Services.Auth
             return validationResult.IsValid;
         }
 
-        public int GetUserIdFromToken(string refreshToken)
+        public int GetUserIdFromToken(string token)
         {
-            var tokenObject = _tokenHandler.ReadJwtToken(refreshToken);
+            var tokenObject = _tokenHandler.ReadJwtToken(token);
             int uid = Convert.ToInt32(tokenObject.Claims.FirstOrDefault(x => x.Type == ClaimKeys.UID)?.Value);
             return uid;
         }
