@@ -62,7 +62,7 @@ namespace PZPP.Backend.Controllers
             if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
                 return Results.Extensions.UnauthorizedDeleteCookie(_authService.CookieKeyRefresh, _authService.CookieKeyAccess);
 
-            string token = _authService.GenerateRefreshToken(user);
+            string token = _authService.GenerateAccessToken(user);
             Response.Cookies.Append(_authService.CookieKeyAccess, token, _authService.CookieOptions);
             return Results.Ok();
         }

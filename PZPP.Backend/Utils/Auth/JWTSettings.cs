@@ -8,9 +8,9 @@
 
         public string Audience { get; set; }
 
-        public string CookieKey { get; set; }
+        public string CookieKeyAccess { get; set; }
 
-        public string RefreshCookieKey { get; set; }
+        public string CookieKeyRefresh { get; set; }
 
         public int TokenExpireDays { get; set; }
 

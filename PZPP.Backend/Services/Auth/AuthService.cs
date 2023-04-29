@@ -25,8 +25,8 @@ namespace PZPP.Backend.Services.Auth
             _jwtSettings = jwtSettings.Value;
             _jwtHelper = new JWTHelper(jwtSettings.Value);
 
-            CookieKeyAccess = _jwtSettings.CookieKey;
-            CookieKeyRefresh = _jwtSettings.RefreshCookieKey;
+            CookieKeyAccess = _jwtSettings.CookieKeyAccess;
+            CookieKeyRefresh = _jwtSettings.CookieKeyRefresh;
         }
 
 
