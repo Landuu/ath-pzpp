@@ -1,9 +1,8 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using PZPP.Backend.Utils.Settings;
 using System.Security.Claims;
 using System.Text;
 
-namespace PZPP.Backend.Utils
+namespace PZPP.Backend.Utils.JWT
 {
     public class JWTHelper
     {

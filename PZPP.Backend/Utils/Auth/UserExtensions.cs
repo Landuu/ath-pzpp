@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace PZPP.Backend.Utils
+namespace PZPP.Backend.Utils.Auth
 {
     public static class UserExtensions
     {

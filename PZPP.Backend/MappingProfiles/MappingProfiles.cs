@@ -16,7 +16,7 @@ namespace PZPP.Backend.MappingProfiles
 
             CreateMap<UserInfo, UserAccountDto>()
                 .ForMember(dest => dest.Name, x => x.MapFrom(src => src.FirstName + " " + src.LastName));
-                
+
         }
     }
 }

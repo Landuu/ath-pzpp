@@ -1,13 +1,20 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using PZPP.Backend.Database;
-using PZPP.Backend.Utils;
-using PZPP.Backend.Utils.Settings;
+using PZPP.Backend.Handlers;
+using PZPP.Backend.Services.Auth;
+using PZPP.Backend.Utils.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Config
 JWTSettings jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
+builder.Services.AddOptions<JWTSettings>().Bind(builder.Configuration.GetSection("JWT"));
 JWTHelper jwtHelper = new(jwtSettings);
+
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareResultHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, UserContextRequirementHandler>();
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
 {
@@ -16,12 +23,19 @@ builder.Services.AddAuthentication().AddJwtBearer(options =>
     {
         OnMessageReceived = context =>
         {
-            context.Token = context.Request.Cookies[jwtSettings.CookieKey];
+            context.Token = context.Request.Cookies[jwtSettings.CookieKeyAccess];
             return Task.CompletedTask;
         }
     };
 });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("UserContext", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new UserContextRequirement());
+    });
+});
 
 builder.Services.AddDbContext<ApiContext>();
 builder.Services.AddControllers();
@@ -30,6 +44,8 @@ builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.P
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IAuthService, AuthService>();
 
 var app = builder.Build();
 

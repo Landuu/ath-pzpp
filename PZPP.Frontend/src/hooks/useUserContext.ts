@@ -23,6 +23,8 @@ export const useUserContext = () => {
     const refreshUser = async () => {
         try {
             const res = await axiosAuth.get<UserContext>('/api/auth/user');
+            if(res.status = 204) return false;
+            
             defaultStore.set(atomUser, res.data);
             return true;
         } catch (error) {

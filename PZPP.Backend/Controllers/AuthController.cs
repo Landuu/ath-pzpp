@@ -2,15 +2,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 using PZPP.Backend.Database;
 using PZPP.Backend.Dto.Auth;
 using PZPP.Backend.Models;
-using PZPP.Backend.Utils;
+using PZPP.Backend.Services.Auth;
+using PZPP.Backend.Utils.Auth;
+using PZPP.Backend.Utils.JWT;
 using PZPP.Backend.Utils.Results;
-using PZPP.Backend.Utils.Settings;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace PZPP.Backend.Controllers
 {
@@ -20,42 +19,29 @@ namespace PZPP.Backend.Controllers
     {
         private readonly ApiContext _context;
         private readonly IMapper _mapper;
-        private readonly JWTSettings _jwtSettings;
-        private readonly JWTHelper _jwtHelper;
-        private readonly CookieOptions _cookieOptions;
+        private readonly IAuthService _authService;
 
-        public AuthController(ApiContext context, IConfiguration configuration, IMapper mapper)
+        public AuthController(ApiContext context, IMapper mapper, IAuthService authService)
         {
             _context = context;
             _mapper = mapper;
-            _cookieOptions = new() { HttpOnly = true };
-
-            var jwtSettings = configuration.GetSection("JWT").Get<JWTSettings>();
-            if (jwtSettings == null) throw new ArgumentNullException(nameof(jwtSettings));
-            _jwtSettings = jwtSettings;
-            _jwtHelper = new(jwtSettings);
+            _authService = authService;
         }
 
         [HttpPost]
         public async Task<IResult> GetToken([FromBody] LoginDto dto)
         {
-            dto.Login = dto.Login.ToLower();
             User? user = _context.Users.FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return Results.BadRequest();
 
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            bool isPasswordValid = _authService.ValidatePassword(user, dto.Password);
             if (!isPasswordValid) return Results.BadRequest();
 
-            var claims = CreateClaims(user);
-            var refreshClaims = CreateRefreshClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
-
-            user.RefreshToken = refreshToken;
+            var tokenPair = _authService.GenerateTokens(user);
+            user.RefreshToken = tokenPair.Refresh;
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
             await _context.SaveChangesAsync();
-
-            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
-            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, refreshToken, _cookieOptions);
             return Results.Ok();
         }
 
@@ -63,34 +49,27 @@ namespace PZPP.Backend.Controllers
         [HttpGet("refresh")]
         public async Task<IResult> GetRefresh()
         {
-            string? refreshToken = Request.Cookies[_jwtSettings.RefreshCookieKey];
+            string? refreshToken = Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
             if (refreshToken == null) return Results.Unauthorized();
-            var tokenHandler = new JwtSecurityTokenHandler();
 
             // Validate provided token
-            TokenValidationResult validationResult = await tokenHandler.ValidateTokenAsync(refreshToken, _jwtHelper.GetValidationParameters());
-            if (!validationResult.IsValid)
-                return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
+            bool isRefreshTokenValid = await _authService.ValidateRefreshToken(refreshToken);
+            if (!isRefreshTokenValid)
+                return Results.Extensions.UnauthorizedDeleteCookie(_authService.JWTSettings.CookieKeyRefresh, _authService.JWTSettings.CookieKeyAccess);
 
-            // Extract info from token
-            var tokenObject = tokenHandler.ReadJwtToken(refreshToken);
-            int uid = Convert.ToInt32(tokenObject.Claims.FirstOrDefault(x => x.Type == ClaimKeys.UID)?.Value);
-            User? user = _context.Users.FirstOrDefault(x => x.Id == uid);
-
-            // Forbid if no user or token changed
+            int userId = _authService.GetUserIdFromToken(refreshToken);
+            User? user = _context.Users.FirstOrDefault(x => x.Id == userId);
             if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
-                return Results.Extensions.UnauthorizedDeleteCookie(_jwtSettings.RefreshCookieKey, _jwtSettings.CookieKey);
+                return Results.Extensions.UnauthorizedDeleteCookie(_authService.JWTSettings.CookieKeyRefresh, _authService.JWTSettings.CookieKeyAccess);
 
-            var claims = CreateClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
+            string token = _authService.GenerateAccessToken(user);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, token, _authService.CookieOptions);
             return Results.Ok();
         }
 
         [HttpPost("register")]
         public async Task<IResult> PostRegister([FromBody] RegisterDto dto)
         {
-            dto.Login = dto.Login.ToLower();
             bool isUser = await _context.Users.AnyAsync(x => x.Login == dto.Login);
             if (isUser) return Results.BadRequest();
 
@@ -111,15 +90,11 @@ namespace PZPP.Backend.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            var claims = CreateClaims(user);
-            var refreshClaims = CreateRefreshClaims(user);
-            string token = GenerateToken(claims, DateTime.Now.AddDays(_jwtSettings.TokenExpireDays));
-            string refreshToken = GenerateToken(refreshClaims, DateTime.Now.AddDays(_jwtSettings.RefreshExpireDays));
-            user.RefreshToken = refreshToken;
-
+            var tokenPair = _authService.GenerateTokens(user);
+            user.RefreshToken = tokenPair.Refresh;
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
+            Response.Cookies.Append(_authService.JWTSettings.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
             await _context.SaveChangesAsync();
-            Response.Cookies.Append(_jwtSettings.CookieKey, token, _cookieOptions);
-            Response.Cookies.Append(_jwtSettings.RefreshCookieKey, refreshToken, _cookieOptions);
             return Results.Ok();
         }
 
@@ -127,8 +102,7 @@ namespace PZPP.Backend.Controllers
         [HttpGet("user")]
         public async Task<IResult> GetUser()
         {
-            string? uid = User.FindFirstValue(ClaimKeys.UID);
-            int userId = Convert.ToInt32(uid);
+            int userId = User.GetUID();
             User? user = await _context.Users
                 .Include(x => x.UserInfo)
                 .FirstOrDefaultAsync(x => x.Id == userId);
@@ -140,8 +114,8 @@ namespace PZPP.Backend.Controllers
         [HttpGet("logout")]
         public IResult Logout()
         {
-            Response.Cookies.Delete(_jwtSettings.CookieKey);
-            Response.Cookies.Delete(_jwtSettings.RefreshCookieKey);
+            Response.Cookies.Delete(_authService.JWTSettings.CookieKeyAccess);
+            Response.Cookies.Delete(_authService.JWTSettings.CookieKeyRefresh);
             return Results.Ok();
         }
 
@@ -153,33 +127,5 @@ namespace PZPP.Backend.Controllers
             return Results.Ok(!isUser);
         }
 
-
-
-        // Private
-        private static Claim[] CreateClaims(User user)
-        {
-            return new Claim[]
-            {
-                new(ClaimKeys.Login, user.Login.ToLower()),
-                new(ClaimKeys.UID, user.Id.ToString()),
-                new(ClaimTypes.Role, "User")
-            };
-        }
-
-        private static Claim[] CreateRefreshClaims(User user)
-        {
-            return new Claim[]
-            {
-                new(ClaimKeys.UID, user.Id.ToString())
-            };
-        }
-
-        private string GenerateToken(Claim[] claims, DateTime expire)
-        {
-            var tokenDescriptor = _jwtHelper.GetTokenDescriptor(claims, expire);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
     }
 }
