@@ -16,30 +16,25 @@ namespace PZPP.Backend.Handlers
 
         public async Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy, PolicyAuthorizationResult authorizeResult)
         {
-            if (authorizeResult.Challenged && policy.Requirements.OfType<UserContextRequirement>().Any())
+            if(!authorizeResult.Challenged && !policy.Requirements.OfType<UserContextRequirement>().Any())
             {
-                string? refreshToken = context.Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
-                if (refreshToken is not null)
-                {
-                    bool isRefreshValid = await _authService.ValidateRefreshToken(refreshToken);
-                    if(isRefreshValid)
-                    {
-                        // If refresh valid, return 401 and let the frontend handle the refresh
-                        context.Response.StatusCode = 401;
-                        return;
-                    } else
-                    {
-                        // Refresh is invalid - delete cookies if exist and return 204 No Content
-                        _authService.DeleteTokenCookies(context.Response);
-                    }
-                }
-
-                context.Response.StatusCode = 204;
+                // Fallback to the default implementation.
+                await _defeaultHandler.HandleAsync(next, context, policy, authorizeResult);
                 return;
             }
 
-            // Fall back to the default implementation.
-            await _defeaultHandler.HandleAsync(next, context, policy, authorizeResult);
+            string? refreshToken = context.Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
+            if (refreshToken is not null && await _authService.ValidateRefreshToken(refreshToken))
+            {
+                // If refresh valid, return 401 and let the frontend handle the refresh
+                context.Response.StatusCode = 401;
+                return;
+            }
+
+            // No cookies or refresh is invalid - delete cookies if exist and return 204 No Content
+            _authService.DeleteTokenCookies(context.Response);
+            context.Response.StatusCode = 204;
+            return;
         }
     }
 
