@@ -2,14 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using PZPP.Backend.Database;
 using PZPP.Backend.Dto.Auth;
 using PZPP.Backend.Models;
 using PZPP.Backend.Services.Auth;
 using PZPP.Backend.Utils.Auth;
-using PZPP.Backend.Utils.JWT;
-using PZPP.Backend.Utils.Results;
 
 namespace PZPP.Backend.Controllers
 {
@@ -29,7 +26,7 @@ namespace PZPP.Backend.Controllers
         }
 
         [HttpPost]
-        public async Task<IResult> GetToken([FromBody] LoginDto dto)
+        public async Task<IResult> PostLogin([FromBody] LoginDto dto)
         {
             User? user = _context.Users.FirstOrDefault(x => x.Login == dto.Login);
             if (user == null) return Results.BadRequest();
@@ -39,31 +36,8 @@ namespace PZPP.Backend.Controllers
 
             var tokenPair = _authService.GenerateTokens(user);
             user.RefreshToken = tokenPair.Refresh;
-            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
-            Response.Cookies.Append(_authService.JWTSettings.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
+            _authService.AddTokenCookies(Response, tokenPair);
             await _context.SaveChangesAsync();
-            return Results.Ok();
-        }
-
-
-        [HttpGet("refresh")]
-        public async Task<IResult> GetRefresh()
-        {
-            string? refreshToken = Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
-            if (refreshToken == null) return Results.Unauthorized();
-
-            // Validate provided token
-            bool isRefreshTokenValid = await _authService.ValidateRefreshToken(refreshToken);
-            if (!isRefreshTokenValid)
-                return Results.Extensions.UnauthorizedDeleteCookie(_authService.JWTSettings.CookieKeyRefresh, _authService.JWTSettings.CookieKeyAccess);
-
-            int userId = _authService.GetUserIdFromToken(refreshToken);
-            User? user = _context.Users.FirstOrDefault(x => x.Id == userId);
-            if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
-                return Results.Extensions.UnauthorizedDeleteCookie(_authService.JWTSettings.CookieKeyRefresh, _authService.JWTSettings.CookieKeyAccess);
-
-            string token = _authService.GenerateAccessToken(user);
-            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, token, _authService.CookieOptions);
             return Results.Ok();
         }
 
@@ -92,15 +66,36 @@ namespace PZPP.Backend.Controllers
 
             var tokenPair = _authService.GenerateTokens(user);
             user.RefreshToken = tokenPair.Refresh;
-            Response.Cookies.Append(_authService.JWTSettings.CookieKeyAccess, tokenPair.Access, _authService.CookieOptions);
-            Response.Cookies.Append(_authService.JWTSettings.CookieKeyRefresh, tokenPair.Refresh, _authService.CookieOptions);
+            _authService.AddTokenCookies(Response, tokenPair);
             await _context.SaveChangesAsync();
             return Results.Ok();
         }
 
+        [HttpGet("refresh")]
+        public async Task<IResult> GetRefresh()
+        {
+            string? refreshToken = Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
+            if (refreshToken == null) return Results.Unauthorized();
+
+            // Validate provided token
+            bool isRefreshTokenValid = await _authService.ValidateRefreshToken(refreshToken);
+            if (!isRefreshTokenValid)
+                return _authService.GetDeleteCookiesResponse(Response);
+
+            int userId = _authService.GetUserIdFromToken(refreshToken);
+            User? user = _context.Users.FirstOrDefault(x => x.Id == userId);
+            if (user == null || user.RefreshToken == null || user.RefreshToken != refreshToken)
+                return _authService.GetDeleteCookiesResponse(Response);
+
+            string token = _authService.GenerateAccessToken(user);
+            _authService.AddAccessTokenCookie(Response, token);
+            return Results.Ok();
+        }
+
+
         [Authorize(Policy = "UserContext")]
         [HttpGet("user")]
-        public async Task<IResult> GetUser()
+        public async Task<IResult> GetUserContext()
         {
             int userId = User.GetUID();
             User? user = await _context.Users
@@ -114,8 +109,7 @@ namespace PZPP.Backend.Controllers
         [HttpGet("logout")]
         public IResult Logout()
         {
-            Response.Cookies.Delete(_authService.JWTSettings.CookieKeyAccess);
-            Response.Cookies.Delete(_authService.JWTSettings.CookieKeyRefresh);
+            _authService.DeleteTokenCookies(Response);
             return Results.Ok();
         }
 

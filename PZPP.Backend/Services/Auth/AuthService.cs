@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Azure;
+using Microsoft.Extensions.Options;
 using PZPP.Backend.Models;
 using PZPP.Backend.Utils.Auth;
 using PZPP.Backend.Utils.JWT;
@@ -72,6 +73,34 @@ namespace PZPP.Backend.Services.Auth
             var tokenObject = _tokenHandler.ReadJwtToken(token);
             int uid = Convert.ToInt32(tokenObject.Claims.FirstOrDefault(x => x.Type == ClaimKeys.UID)?.Value);
             return uid;
+        }
+
+        public IResult GetDeleteCookiesResponse(HttpResponse response)
+        {
+            DeleteTokenCookies(response);
+            return Results.Unauthorized();
+        }
+
+        public void DeleteTokenCookies(HttpResponse response)
+        {
+            response.Cookies.Delete(JWTSettings.CookieKeyAccess);
+            response.Cookies.Delete(JWTSettings.CookieKeyRefresh);
+        }
+
+        public void AddTokenCookies(HttpResponse response, TokenPair tokenPair)
+        {
+            AddAccessTokenCookie(response, tokenPair.Access);
+            AddRefreshTokenCookie(response, tokenPair.Refresh);
+        }
+
+        public void AddAccessTokenCookie(HttpResponse response, string token)
+        {
+            response.Cookies.Append(JWTSettings.CookieKeyAccess, token, CookieOptions);
+        }
+
+        public void AddRefreshTokenCookie(HttpResponse response, string refreshToken)
+        {
+            response.Cookies.Append(JWTSettings.CookieKeyRefresh, refreshToken, CookieOptions);
         }
 
 
