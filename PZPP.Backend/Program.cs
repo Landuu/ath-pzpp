@@ -58,6 +58,7 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.MapControllers();
 app.UseRouting();
+app.UseRefreshToken();
 
 #pragma warning disable ASP0001
 app.UseAuthorization();
