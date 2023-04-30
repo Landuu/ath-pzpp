@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Policy;
 using PZPP.Backend.Database;
 using PZPP.Backend.Handlers;
 using PZPP.Backend.Services.Auth;

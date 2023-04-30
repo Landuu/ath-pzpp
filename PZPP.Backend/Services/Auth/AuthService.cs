@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using PZPP.Backend.Models;
 using PZPP.Backend.Utils.Auth;
 using PZPP.Backend.Utils.JWT;
