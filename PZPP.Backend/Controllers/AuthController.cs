@@ -98,7 +98,7 @@ namespace PZPP.Backend.Controllers
             return Results.Ok();
         }
 
-        [Authorize]
+        [Authorize(Policy = "UserContext")]
         [HttpGet("user")]
         public async Task<IResult> GetUser()
         {

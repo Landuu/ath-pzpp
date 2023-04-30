@@ -13,7 +13,7 @@ JWTSettings jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSetting
 builder.Services.AddOptions<JWTSettings>().Bind(builder.Configuration.GetSection("JWT"));
 JWTHelper jwtHelper = new(jwtSettings);
 
-builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationMiddlewareResultHandler>();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, CustomAuthorizationMiddlewareResultHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, UserContextRequirementHandler>();
 
 builder.Services.AddAuthentication().AddJwtBearer(options =>
