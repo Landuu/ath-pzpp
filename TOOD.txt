@@ -1,0 +1,1 @@
+- Dodać try/catch do metod w AuthService, które parsują token za pomocą metody tokenHandler.ReadJwtToken(), bo możę ona wywalić exception, jak w ciasteczku będzie coś innego niż token JWT

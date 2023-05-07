@@ -16,8 +16,10 @@ namespace PZPP.Backend.Services.Auth
         string GenerateRefreshToken(User user);
         TokenPair GenerateTokens(User user);
         IResult GetDeleteCookiesResponse(HttpResponse response);
+        DateTime GetTokenExpireDateUTC(string token);
+        TokenPairNullable GetTokensFromCookies(HttpRequest request);
         int GetUserIdFromToken(string refreshToken);
         bool ValidatePassword(User user, string password);
-        Task<bool> ValidateRefreshToken(string refreshToken);
+        Task<bool> ValidateToken(string refreshToken);
     }
 }

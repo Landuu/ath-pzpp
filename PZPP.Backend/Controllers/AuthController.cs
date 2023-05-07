@@ -78,7 +78,7 @@ namespace PZPP.Backend.Controllers
             if (refreshToken == null) return Results.Unauthorized();
 
             // Validate provided token
-            bool isRefreshTokenValid = await _authService.ValidateRefreshToken(refreshToken);
+            bool isRefreshTokenValid = await _authService.ValidateToken(refreshToken);
             if (!isRefreshTokenValid)
                 return _authService.GetDeleteCookiesResponse(Response);
 

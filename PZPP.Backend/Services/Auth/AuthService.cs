@@ -61,9 +61,9 @@ namespace PZPP.Backend.Services.Auth
             return GenerateToken(claims, DateTime.Now.AddMinutes(JWTSettings.RefreshExpireDays));
         }
 
-        public async Task<bool> ValidateRefreshToken(string refreshToken)
+        public async Task<bool> ValidateToken(string token)
         {
-            var validationResult = await _tokenHandler.ValidateTokenAsync(refreshToken, _jwtHelper.GetValidationParameters());
+            var validationResult = await _tokenHandler.ValidateTokenAsync(token, _jwtHelper.GetValidationParameters());
             return validationResult.IsValid;
         }
 
@@ -92,6 +92,15 @@ namespace PZPP.Backend.Services.Auth
             AddRefreshTokenCookie(response, tokenPair.Refresh);
         }
 
+        public TokenPairNullable GetTokensFromCookies(HttpRequest request)
+        {
+            return new()
+            {
+                Acces = request.Cookies[JWTSettings.CookieKeyAccess],
+                Refresh = request.Cookies[JWTSettings.CookieKeyRefresh]
+            };
+        }
+
         public void AddAccessTokenCookie(HttpResponse response, string token)
         {
             response.Cookies.Append(JWTSettings.CookieKeyAccess, token, CookieOptions);
@@ -100,6 +109,12 @@ namespace PZPP.Backend.Services.Auth
         public void AddRefreshTokenCookie(HttpResponse response, string refreshToken)
         {
             response.Cookies.Append(JWTSettings.CookieKeyRefresh, refreshToken, CookieOptions);
+        }
+
+        public DateTime GetTokenExpireDateUTC(string token)
+        {
+            var tokenObject = _tokenHandler.ReadJwtToken(token);
+            return tokenObject.ValidTo;
         }
 
 

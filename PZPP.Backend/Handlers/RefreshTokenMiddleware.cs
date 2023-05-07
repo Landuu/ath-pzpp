@@ -1,4 +1,5 @@
-﻿using PZPP.Backend.Database;
+﻿using Azure;
+using PZPP.Backend.Database;
 using PZPP.Backend.Models;
 using PZPP.Backend.Services.Auth;
 
@@ -17,28 +18,50 @@ namespace PZPP.Backend.Handlers
 
         public async Task InvokeAsync(HttpContext context, ApiContext dbContext)
         {
-            string? accessToken = context.Request.Cookies[_authService.JWTSettings.CookieKeyAccess];
-            string? refreshToken = context.Request.Cookies[_authService.JWTSettings.CookieKeyRefresh];
-            User? user = dbContext.Users.FirstOrDefault();
-
-            if (accessToken is null || refreshToken is null)
+            TokenPairNullable tokenPair = _authService.GetTokensFromCookies(context.Request);
+            if (tokenPair.Acces is null || tokenPair.Refresh is null)
             {
                 await _next(context);
                 return;
             }
 
-            await _next(context);
-
-            /*
-            bool isRefreshValid = await _authService.ValidateToken(refreshToken);
-            if (isRefreshValid && _authService.IsTokenExpired(accessToken) && !_authService.IsTokenExpired(refreshToken))
+            bool isAccessValid = await _authService.ValidateToken(tokenPair.Acces);
+            if(!isAccessValid)
             {
-                string token = _authService.GenerateAccessToken();
-                context.Response.Cookies.Append(_authService.JwtSettings.CookieKey, token);
+                await _next(context);
+                return;
             }
 
+            // TODO: try/catch
+            DateTime accessTokenExpire = _authService.GetTokenExpireDateUTC(tokenPair.Acces);
+            TimeSpan timeToExpire = accessTokenExpire - DateTime.UtcNow;
+            double refeshThreshold = _authService.JWTSettings.TokenExpireMinutes * 0.60;
+            if(timeToExpire.TotalMinutes < refeshThreshold)
+            {
+                await _next(context);
+                return;
+            }
+
+            // Refresh/assign accces token using refresh token
+            bool isRefeshValid = await _authService.ValidateToken(tokenPair.Refresh);
+            if(!isRefeshValid)
+            {
+                await _next(context);
+                return;
+            }
+
+            // TODO: try/catch
+            int userId = _authService.GetUserIdFromToken(tokenPair.Refresh);
+            User? user = await dbContext.Users.FindAsync(userId);
+            if(user is null || user.RefreshToken is null || user.RefreshToken != tokenPair.Refresh)
+            {
+                await _next(context);
+                return;
+            }
+
+            string token = _authService.GenerateAccessToken(user);
+            _authService.AddAccessTokenCookie(context.Response, token);
             await _next(context);
-            */
         }
 
 
