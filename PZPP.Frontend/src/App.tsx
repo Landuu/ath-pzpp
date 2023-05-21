@@ -52,7 +52,7 @@ const App = () => {
 			<Route element={<Layout />}>
 				<Route index element={<Index />} />
 				<Route path='/products' element={<Products />} />
-				<Route path='/product' element={<Product />} />
+				<Route path='/products/:id' element={<Product />} />
 				<Route path='/cart' element={<Cart />} />
 
 				<Route element={<RouteGuard />}>
