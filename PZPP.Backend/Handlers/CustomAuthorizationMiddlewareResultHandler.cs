@@ -16,7 +16,7 @@ namespace PZPP.Backend.Handlers
 
         public async Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy, PolicyAuthorizationResult authorizeResult)
         {
-            if(!authorizeResult.Challenged && !policy.Requirements.OfType<UserContextRequirement>().Any())
+            if (!authorizeResult.Challenged && !policy.Requirements.OfType<UserContextRequirement>().Any())
             {
                 // Fallback to the default implementation.
                 await _defeaultHandler.HandleAsync(next, context, policy, authorizeResult);

@@ -1,5 +1,4 @@
-﻿using Azure;
-using PZPP.Backend.Database;
+﻿using PZPP.Backend.Database;
 using PZPP.Backend.Models;
 using PZPP.Backend.Services.Auth;
 
@@ -26,7 +25,7 @@ namespace PZPP.Backend.Handlers
             }
 
             bool isAccessValid = await _authService.ValidateToken(tokenPair.Acces);
-            if(!isAccessValid)
+            if (!isAccessValid)
             {
                 await _next(context);
                 return;
@@ -35,8 +34,8 @@ namespace PZPP.Backend.Handlers
             // TODO: try/catch
             DateTime accessTokenExpire = _authService.GetTokenExpireDateUTC(tokenPair.Acces);
             TimeSpan timeToExpire = accessTokenExpire - DateTime.UtcNow;
-            double refeshThreshold = _authService.JWTSettings.TokenExpireMinutes * 0.60;
-            if(timeToExpire.TotalMinutes < refeshThreshold)
+            double refeshThreshold = _authService.JWTSettings.TokenExpireMinutes * 0.80;
+            if (timeToExpire.TotalMinutes < refeshThreshold)
             {
                 await _next(context);
                 return;
@@ -44,7 +43,7 @@ namespace PZPP.Backend.Handlers
 
             // Refresh/assign accces token using refresh token
             bool isRefeshValid = await _authService.ValidateToken(tokenPair.Refresh);
-            if(!isRefeshValid)
+            if (!isRefeshValid)
             {
                 await _next(context);
                 return;
@@ -53,7 +52,7 @@ namespace PZPP.Backend.Handlers
             // TODO: try/catch
             int userId = _authService.GetUserIdFromToken(tokenPair.Refresh);
             User? user = await dbContext.Users.FindAsync(userId);
-            if(user is null || user.RefreshToken is null || user.RefreshToken != tokenPair.Refresh)
+            if (user is null || user.RefreshToken is null || user.RefreshToken != tokenPair.Refresh)
             {
                 await _next(context);
                 return;
