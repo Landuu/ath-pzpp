@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using PZPP.Backend.Database;
 using PZPP.Backend.Handlers;
 using PZPP.Backend.Services.Auth;
+using PZPP.Backend.Services.DatabaseSeed;
 using PZPP.Backend.Utils.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,6 +46,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IAuthService, AuthService>();
+builder.Services.AddScoped<IDatabaseSeedService, DatabaseSeedService>();
 
 var app = builder.Build();
 
