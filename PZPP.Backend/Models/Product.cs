@@ -19,5 +19,7 @@ namespace PZPP.Backend.Models
 
         [Precision(10, 2)]
         public decimal Price { get; set; }
+
+        public int Stock { get; set; }
     }
 }

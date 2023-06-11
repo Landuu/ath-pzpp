@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DevExtreme.AspNet.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PZPP.Backend.Database;
+using PZPP.Backend.Utils.Devextreme;
 
 namespace PZPP.Backend.Controllers
 {
@@ -17,10 +19,11 @@ namespace PZPP.Backend.Controllers
         }
 
         [HttpGet]
-        public async Task<IResult> GetProducts()
+        public async Task<IResult> GetProducts(DataSourceLoadOptions loadOptions)
         {
             var products = await _context.Products.ToListAsync();
-            return Results.Json(products);
+            var loadResult = DataSourceLoader.Load(products, loadOptions);
+            return Results.Json(loadResult);
         }
 
         [HttpGet("{productId}")]

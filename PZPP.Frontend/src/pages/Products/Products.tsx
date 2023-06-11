@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { createStore } from "devextreme-aspnet-data-nojquery";
+import { List } from "devextreme-react/list";
 import Container from "../../components/Container";
+import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
+import { Button } from "devextreme-react";
+import DataSource from "devextreme/data/data_source";
 
 export interface ProductDto {
     Id: number
@@ -10,40 +14,81 @@ export interface ProductDto {
     Description: string
     Price: number
     ImageUrl: string
+    Stock: number
 }
 
 const Products = () => {
-    const { data } = useQuery<ProductDto[]>({
-        queryFn: async () => await (await axios.get('/api/products')).data,
-        queryKey: ['products']
-    });
+    const navigate = useNavigate();
 
-    useEffect(() => {
-        console.log(data);
-    }, [data])
+    const dataSource = useRef(new DataSource({
+        store: createStore({
+            loadUrl: '/api/products',
+            key: 'Id'
+        })
+    }))
+    
+    const itemRender = (e: any) => {
+        return (
+            <div className="flex justify-between">
+                <div className="flex items-center gap-4">
+                    <div>
+                        <img className="w-16" src={e.ImageUrl} alt="" />
+                    </div>
+                    <div>
+                        <div>
+                            {e.Name}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                            {e.Stock > 0
+                                ? <div>W magazynie, {e.Stock} szt.</div>
+                                : <div>Niedostępny</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center text-base">
+                    {e.Price} zł
+                </div>
+            </div>
+        )
+    }
 
     return (
         <Container className='my-10'>
             <div className="grid grid-cols-4">
-                <div>Kategorie:</div>
-                <div className="col-span-3 flex flex-col gap-2">
-                    {data?.map((p, index) =>
-                        <Link to={p.Id.toString()}>
-                        <div className='flex justify-between px-8 py-2 hover:bg-gray-100 hover:cursor-pointer' key={index}>
-                            <div className="flex gap-5">
-                                <div>
-                                    <img className="h-16" src={p.ImageUrl} />
-                                </div>
-                                <div className="text-lg flex items-center">
-                                {p.Name}
-                                </div>
-                            </div>
-                            <div className="text-xl">
-                                {p.Price} PLN
-                            </div>
-                        </div>
-                        </Link>
-                    )}
+                <div>
+                    <div>Kategorie:</div>
+                    <div>
+                        <Button 
+                            text='filtr'
+                            onClick={() => {
+                                dataSource.current.filter(['Stock', '=', 8]);
+                                dataSource.current.load();
+                            }}
+                        />
+                        <Button 
+                            text='clear'
+                            onClick={() => {
+                                dataSource.current.filter([]);
+                                dataSource.current.load();
+                            }}
+                        />
+                    </div>
+                </div>
+                <div className="col-span-3">
+                    <List
+                        dataSource={dataSource.current}
+                        searchExpr="Name"
+                        searchEnabled={true}
+                        searchMode='contains' 
+                        displayExpr='Name'
+                        itemRender={itemRender}
+                        onItemClick={(e) => navigate(`${e.itemData.Id}`)}
+                        nextButtonText="Pokaż więcej..."
+                        noDataText="Brak produktów"
+                        
+                    />
                 </div>
             </div>
         </Container>

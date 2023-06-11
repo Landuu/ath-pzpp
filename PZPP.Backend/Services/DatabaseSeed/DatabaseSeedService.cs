@@ -16,19 +16,17 @@ namespace PZPP.Backend.Services.DatabaseSeed
 
         public async Task GenerateData()
         {
-            int productCount = 25;
-            var products = new List<Product>();
-            for (int i = 0; i < productCount; i++)
-            {
-                var product = new Faker<Product>("pl")
+            var product = new Faker<Product>("pl")
                     .RuleFor(p => p.Name, f => $"{f.Commerce.ProductAdjective()} {f.Commerce.ProductName()}")
                     .RuleFor(p => p.Description, f => f.Commerce.ProductDescription())
                     .RuleFor(p => p.ImageUrl, f => f.Image.LoremFlickrUrl(keywords: "computer, phone, laptop, tool, powertool, switch"))
-                    .RuleFor(p => p.Price, f => Convert.ToDecimal(f.Commerce.Price()));
-                products.Add(product);
-            }
+                    .RuleFor(p => p.Price, f => Convert.ToDecimal(f.Commerce.Price()))
+                    .RuleFor(p => p.Stock, f => f.Random.Number(2, 20));
 
-            await _context.AddRangeAsync(products);
+            int productCount = 50;
+            for (int i = 0; i < productCount; i++)
+                await _context.Products.AddAsync(product.Generate());
+
             await _context.SaveChangesAsync();
         }
     }

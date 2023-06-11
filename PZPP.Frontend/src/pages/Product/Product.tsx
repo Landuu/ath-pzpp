@@ -86,7 +86,7 @@ const Product = () => {
                         <div className="flex justify-end items-end space-x-2">
                             <NumberBox
                                 min={1}
-                                max={20}
+                                max={data?.Stock ?? 1}
                                 width={120}
                                 showSpinButtons={true}
                                 className='py-1'
