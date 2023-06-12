@@ -29,5 +29,12 @@ namespace PZPP.Backend.Controllers
 
             return Results.Ok("Ok");
         }
+
+        [HttpGet("test")]
+        public async Task<IResult> Test([FromQuery] int[] id)
+        {
+            await _databaseSeedService.GenerateData();
+            return Results.Ok("Ok");
+        }
     }
 }

@@ -12,7 +12,8 @@ export interface ProductDto {
     Id: number
     Name: string
     Description: string
-    Price: number
+    PriceNetto: number
+    PriceBrutto: number
     ImageUrl: string
     Stock: number
 }
@@ -48,7 +49,7 @@ const Products = () => {
                 </div>
 
                 <div className="flex items-center text-base">
-                    {e.Price} zł
+                    {e.PriceBrutto} zł
                 </div>
             </div>
         )

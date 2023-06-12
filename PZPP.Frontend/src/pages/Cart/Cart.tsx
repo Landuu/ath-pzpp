@@ -10,6 +10,9 @@ import { useToast } from "../../hooks/useToast";
 import { useUserContext } from "../../hooks/useUserContext";
 import { CartProduct } from "../../types";
 import CartProductElement from "./CartProduct";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { ProductDto } from "../Products/Products";
 
 const Cart = () => {
     const { user } = useUserContext();
@@ -20,6 +23,7 @@ const Cart = () => {
     const [showDelete, setShowDelete] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<CartProduct | null>(null);
     const [editQuantity, setEditQuantity] = useState(0);
+
 
     const handleFinalize = () => {
         showToast("Zakup");

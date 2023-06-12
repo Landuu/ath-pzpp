@@ -27,5 +27,6 @@ namespace PZPP.Backend.Database
         public DbSet<User> Users { get; set; }
         public DbSet<UserInfo> UserInfo { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<ProductCategory> ProductCategories { get; set; }
     }
 }

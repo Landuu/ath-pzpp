@@ -9,17 +9,24 @@ namespace PZPP.Backend.Models
         public int Id { get; set; }
 
         [MaxLength(128)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [MaxLength(512)]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [MaxLength(256)]
-        public string ImageUrl { get; set; }
+        public required string ImageUrl { get; set; }
 
         [Precision(10, 2)]
-        public decimal Price { get; set; }
+        public decimal PriceNetto { get; set; }
+
+        [Precision(10, 2)]
+        public decimal PriceBrutto { get; set; }
 
         public int Stock { get; set; }
+
+        public int ProductCategoryId { get; set; }
+
+        public ProductCategory ProductCategory { get; set; } = null!;
     }
 }
