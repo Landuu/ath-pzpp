@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { createStore } from "devextreme-aspnet-data-nojquery";
+import { Button, TreeView } from "devextreme-react";
 import { List } from "devextreme-react/list";
-import Container from "../../components/Container";
-import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
-import { Button } from "devextreme-react";
 import DataSource from "devextreme/data/data_source";
+import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import Container from "../../components/Container";
 
 export interface ProductDto {
     Id: number
@@ -18,6 +18,17 @@ export interface ProductDto {
     Stock: number
 }
 
+
+export interface ProductCategoryDto {
+    Id: number
+    Name: string
+}
+
+const categoriesDataSource = createStore({
+    loadUrl: '/api/products/categories',
+    key: 'Id'
+})
+
 const Products = () => {
     const navigate = useNavigate();
 
@@ -26,8 +37,13 @@ const Products = () => {
             loadUrl: '/api/products',
             key: 'Id'
         })
-    }))
-    
+    }));
+
+    const { data } = useQuery({
+        queryFn: async () => (await axios.get('/api/products/categories')).data,
+        queryKey: ['products', 'categories']
+    });
+
     const itemRender = (e: any) => {
         return (
             <div className="flex justify-between">
@@ -57,21 +73,28 @@ const Products = () => {
 
     return (
         <Container className='my-10'>
-            <div className="grid grid-cols-4">
+            <div className="grid grid-cols-4 gap-5">
                 <div>
-                    <div>Kategorie:</div>
-                    <div>
-                        <Button 
-                            text='filtr'
+                    <div className="mb-2">
+                        <Button
+                            icon="close"
+                            text='Wyczyść filtry'
+                            stylingMode="text"
                             onClick={() => {
-                                dataSource.current.filter(['Stock', '=', 8]);
+                                dataSource.current.filter([]);
                                 dataSource.current.load();
                             }}
                         />
-                        <Button 
-                            text='clear'
-                            onClick={() => {
-                                dataSource.current.filter([]);
+                    </div>
+                    <div className="mb-1">Kategorie:</div>
+                    <div>
+                        <TreeView
+                            dataSource={categoriesDataSource}
+                            keyExpr='Id'
+                            displayExpr='Name'
+                            onItemClick={(e) => {
+                                if (!e.itemData) return;
+                                dataSource.current.filter(['ProductCategoryId', '=', e.itemData.Id]);
                                 dataSource.current.load();
                             }}
                         />
@@ -82,13 +105,13 @@ const Products = () => {
                         dataSource={dataSource.current}
                         searchExpr="Name"
                         searchEnabled={true}
-                        searchMode='contains' 
+                        searchMode='contains'
                         displayExpr='Name'
                         itemRender={itemRender}
                         onItemClick={(e) => navigate(`${e.itemData.Id}`)}
                         nextButtonText="Pokaż więcej..."
                         noDataText="Brak produktów"
-                        
+
                     />
                 </div>
             </div>

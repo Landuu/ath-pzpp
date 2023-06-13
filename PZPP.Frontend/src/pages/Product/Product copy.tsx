@@ -15,14 +15,14 @@ const Product = () => {
     const showToast = useToast();
 
     const handleAddToCart = () => {
-        const itemIndex = cart.findIndex(x => x.ProductId == 1);
+        const itemIndex = cart.findIndex(x => x.id == 1);
         if(itemIndex != -1) {
-            cart[itemIndex].Quantity += quantity;
+            cart[itemIndex].q += quantity;
             setCart(cart);
         } else {
             const newItem: CartProduct = {
-                ProductId: 1,
-                Quantity: quantity
+                id: 1,
+                q: quantity
             };
             setCart([...cart, newItem]);
         }

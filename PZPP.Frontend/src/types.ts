@@ -32,6 +32,6 @@ export type UserAccountDto = {
 }
 
 export type CartProduct = {
-    ProductId: number,
-    Quantity: number
+    id: number,
+    q: number
 }

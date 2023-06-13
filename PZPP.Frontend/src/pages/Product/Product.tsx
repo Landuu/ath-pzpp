@@ -11,11 +11,12 @@ import Container from "../../components/Container";
 import { useToast } from "../../hooks/useToast";
 import { CartProduct } from "../../types";
 import { ProductDto } from "../Products/Products";
+import { useCart } from "../../hooks/useCart";
 
 const Product = () => {
     const {id} = useParams();
     const [quantity, setQuantity] = useState(1);
-    const [cart, setCart] = useAtom(atomCart);
+    const {cart, addCartProduct, getCartProduct, setCartProductQuantity} = useCart();
     const showToast = useToast();
 
     const {data} = useQuery<ProductDto>({
@@ -25,23 +26,23 @@ const Product = () => {
 
     const handleAddToCart = () => {
         if(!data) return;
-        const itemIndex = cart.findIndex(x => x.ProductId == data.Id);
-        if(itemIndex != -1) {
-            if(cart[itemIndex].Quantity + quantity > data.Stock)
-                cart[itemIndex].Quantity = data.Stock;
-            else
-                cart[itemIndex].Quantity += quantity;
-            setCart(cart);
+        
+        const currentProduct = getCartProduct(data.Id);
+        if(!currentProduct) {
+            addCartProduct(data.Id, quantity);
+            showToast(`Dodano ${quantity} szt. do koszyka!`, "success");
         } else {
-            const newItem: CartProduct = {
-                ProductId: data.Id,
-                Quantity: quantity
-            };
-            setCart([...cart, newItem]);
+            let newQuantity = currentProduct.q + quantity;
+            if(newQuantity > data.Stock) {
+                newQuantity = data.Stock;
+                showToast(`W koszyku znajduje się teraz maksymalna ilość: ${data.Stock} szt.`);
+            } else {
+                showToast(`Dodano ${quantity} szt. do koszyka!`, "success");
+            }
+            setCartProductQuantity(data.Id, newQuantity);
         }
+
         setQuantity(1);
-        showToast(`Dodano ${quantity} szt. do koszyka!`, "success");
-        console.log(cart);
     }
 
     return (

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using PZPP.Backend.Dto;
 using PZPP.Backend.Dto.Auth;
 using PZPP.Backend.Dto.User;
 using PZPP.Backend.Models;
@@ -17,6 +18,7 @@ namespace PZPP.Backend.MappingProfiles
             CreateMap<UserInfo, UserAccountDto>()
                 .ForMember(dest => dest.Name, x => x.MapFrom(src => src.FirstName + " " + src.LastName));
 
+            CreateMap<Product, CartProductDto>();
         }
     }
 }

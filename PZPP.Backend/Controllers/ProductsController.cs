@@ -34,5 +34,12 @@ namespace PZPP.Backend.Controllers
                return Results.BadRequest("Product not found");
             return Results.Json(product);
         }
+
+        [HttpGet("categories")]
+        public async Task<IResult> GetCategories()
+        {
+            var categories = await _context.ProductCategories.ToListAsync();
+            return Results.Json(categories);
+        }
     }
 }
