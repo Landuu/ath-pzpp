@@ -1,12 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { createStore } from "devextreme-aspnet-data-nojquery";
-import { Button, TreeView } from "devextreme-react";
+import { Button, } from "devextreme-react/button";
 import { List } from "devextreme-react/list";
+import { SelectBox } from "devextreme-react/select-box";
+import { TreeView } from "devextreme-react/tree-view";
 import DataSource from "devextreme/data/data_source";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Container from "../../components/Container";
+
 
 export interface ProductDto {
     Id: number
@@ -38,11 +39,6 @@ const Products = () => {
             key: 'Id'
         })
     }));
-
-    const { data } = useQuery({
-        queryFn: async () => (await axios.get('/api/products/categories')).data,
-        queryKey: ['products', 'categories']
-    });
 
     const itemRender = (e: any) => {
         return (
@@ -94,6 +90,7 @@ const Products = () => {
                             displayExpr='Name'
                             onItemClick={(e) => {
                                 if (!e.itemData) return;
+                                
                                 dataSource.current.filter(['ProductCategoryId', '=', e.itemData.Id]);
                                 dataSource.current.load();
                             }}
@@ -101,6 +98,39 @@ const Products = () => {
                     </div>
                 </div>
                 <div className="col-span-3">
+                    <div className="mb-2 flex justify-end items-center">
+                        <div className="mr-3">Sortowanie: </div>
+                        <SelectBox
+                            items={[
+                                {
+                                    id: 0,
+                                    name: "Domyślnie"
+                                },
+                                {
+                                    id: 1,
+                                    name: "Cena - rosnąco"
+                                },
+                                {
+                                    id: 2,
+                                    name: "Cena - malejąco"
+                                }
+                            ]}
+                            defaultValue={0}
+                            displayExpr='name'
+                            valueExpr='id'
+                            onValueChanged={(e) => {
+                                if(e.value == 0) {
+                                    dataSource.current.sort([]);
+                                } else if(e.value == 1) {
+                                    dataSource.current.sort({ selector: 'PriceBrutto', desc: false })
+                                } else if(e.value == 2) {
+                                    dataSource.current.sort({ selector: 'PriceBrutto', desc: true })
+                                }
+                                dataSource.current.load();
+                            }}
+                            width={200}
+                        />
+                    </div>
                     <List
                         dataSource={dataSource.current}
                         searchExpr="Name"
