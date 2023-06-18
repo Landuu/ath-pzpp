@@ -2,38 +2,35 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Button } from "devextreme-react/button";
 import { NumberBox } from 'devextreme-react/number-box';
-import { useAtom } from "jotai";
 import { useState } from "react";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { Link, useParams } from "react-router-dom";
-import { atomCart } from "../../atoms";
 import Container from "../../components/Container";
-import { useToast } from "../../hooks/useToast";
-import { CartProduct } from "../../types";
-import { ProductDto } from "../Products/Products";
 import { useCart } from "../../hooks/useCart";
+import { useToast } from "../../hooks/useToast";
+import { ProductDto } from "../Products/Products";
 
 const Product = () => {
-    const {id} = useParams();
+    const { id } = useParams();
     const [quantity, setQuantity] = useState(1);
-    const {cart, addCartProduct, getCartProduct, setCartProductQuantity} = useCart();
+    const { cart, addCartProduct, getCartProduct, setCartProductQuantity } = useCart();
     const showToast = useToast();
 
-    const {data} = useQuery<ProductDto>({
+    const { data } = useQuery<ProductDto>({
         queryFn: async () => await (await axios.get('/api/products/' + id)).data,
         queryKey: ['products', id]
     })
 
     const handleAddToCart = () => {
-        if(!data) return;
-        
+        if (!data) return;
+
         const currentProduct = getCartProduct(data.Id);
-        if(!currentProduct) {
+        if (!currentProduct) {
             addCartProduct(data.Id, quantity);
             showToast(`Dodano ${quantity} szt. do koszyka!`, "success");
         } else {
             let newQuantity = currentProduct.q + quantity;
-            if(newQuantity > data.Stock) {
+            if (newQuantity > data.Stock) {
                 newQuantity = data.Stock;
                 showToast(`W koszyku znajduje się teraz maksymalna ilość: ${data.Stock} szt.`);
             } else {

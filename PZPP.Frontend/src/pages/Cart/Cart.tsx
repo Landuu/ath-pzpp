@@ -1,22 +1,19 @@
 import { Button } from "devextreme-react/button";
 import { NumberBox } from "devextreme-react/number-box";
 import Popup from "devextreme-react/popup";
-import { useAtom } from "jotai";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { IoCartOutline } from "react-icons/io5";
-import { atomCart } from "../../atoms";
 import Container from "../../components/Container";
 import { CartProductDto, useQueryCart } from "../../hooks/queries/useQueryCart";
+import { useCart } from "../../hooks/useCart";
 import { useToast } from "../../hooks/useToast";
 import { useUserContext } from "../../hooks/useUserContext";
-import { CartProduct } from "../../types";
-import CartProductElement from "./CartProduct";
-import { useCart } from "../../hooks/useCart";
+import CartProductElement from "./components/CartProductElement";
 
 const Cart = () => {
     const { user } = useUserContext();
     const showToast = useToast();
-    const {cart, clearCart, setCartProductQuantity, deleteCartProduct} = useCart();
+    const { cart, clearCart, setCartProductQuantity, deleteCartProduct } = useCart();
     const [showClear, setShowClear] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
@@ -52,9 +49,9 @@ const Cart = () => {
 
     const getTotal = () => {
         let sum = 0;
-        if(!data) return sum;
+        if (!data) return sum;
         data.forEach(p => sum += (p.PriceBrutto * p.Quantity));
-        return sum;
+        return sum.toFixed(2);
     }
 
     return (<>
@@ -80,8 +77,8 @@ const Cart = () => {
                     </div>
                     <div className="p-5 m-2 border">
                         <div className="font-medium text-gray-700 text-xl">Podsumowanie:</div>
-                        <div className="text-lg flex space-x-2 mt-10">
-                            <div>Razem:</div>
+                        <div className="text-lg mt-10">
+                            <div>Razem (brutto):</div>
                             <div className="font-medium">{getTotal()} zł</div>
                         </div>
                         <div className="mt-3">
@@ -123,7 +120,7 @@ const Cart = () => {
                 </div>
                 <div className="space-x-4 flex justify-center">
                     <Button text='Potwierdź' icon="check" type="default" onClick={() => {
-                        if(!selectedProduct) return;
+                        if (!selectedProduct) return;
                         setCartProductQuantity(selectedProduct?.Id, editQuantity);
                         handleHideModal();
                     }} />
@@ -137,7 +134,7 @@ const Cart = () => {
                 <div>Czy na pewno chcesz usunąć ten produkt z koszyka?</div>
                 <div className="space-x-4 flex justify-center">
                     <Button text='Usuń' icon="trash" type="danger" onClick={() => {
-                        if(!selectedProduct?.Id) return;
+                        if (!selectedProduct?.Id) return;
                         deleteCartProduct(selectedProduct.Id);
                         handleHideModal();
                     }} />

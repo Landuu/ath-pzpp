@@ -61,7 +61,7 @@ const Products = () => {
                 </div>
 
                 <div className="flex items-center text-base">
-                    {e.PriceBrutto} zł
+                    {e.PriceBrutto.toFixed(2)} zł
                 </div>
             </div>
         )

@@ -1,10 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button  } from "devextreme-react/button";
-import { TextBox } from "devextreme-react/text-box";
+import { Button } from "devextreme-react/button";
 import { StringLengthRule } from "devextreme-react/data-grid";
-import {
-    EmailRule, RequiredRule, Validator
-} from 'devextreme-react/validator';
+import { TextBox } from "devextreme-react/text-box";
+import { EmailRule, RequiredRule, Validator } from 'devextreme-react/validator';
 import { useState } from "react";
 import { IoHome, IoPerson, IoPersonOutline } from "react-icons/io5";
 import { axiosAuth } from "../../axiosClient";
@@ -12,6 +10,7 @@ import AccountNav from "../../components/AccountNav";
 import Container from "../../components/Container";
 import { useUserContext } from "../../hooks/useUserContext";
 import { UserAccountDto } from "../../types";
+
 
 const Account = () => {
     const { user, refreshUser } = useUserContext();
@@ -156,7 +155,7 @@ const Account = () => {
                                     </Validator>
                                 </TextBox>
                                 <TextBox label="Kod pocztowy" name="PostCode" defaultValue={data?.PostCode} disabled={isEditAddressLoading}>
-                                    <Validator> 
+                                    <Validator>
                                         <RequiredRule />
                                     </Validator>
                                 </TextBox>
