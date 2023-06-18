@@ -3,6 +3,7 @@ import { NumberBox } from "devextreme-react/number-box";
 import Popup from "devextreme-react/popup";
 import { useState } from "react";
 import { IoCartOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 import Container from "../../components/Container";
 import { CartProductDto, useQueryCart } from "../../hooks/queries/useQueryCart";
 import { useCart } from "../../hooks/useCart";
@@ -13,6 +14,7 @@ import CartProductElement from "./components/CartProductElement";
 const Cart = () => {
     const { user } = useUserContext();
     const showToast = useToast();
+    const navigate = useNavigate();
     const { cart, clearCart, setCartProductQuantity, deleteCartProduct } = useCart();
     const [showClear, setShowClear] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
@@ -22,7 +24,7 @@ const Cart = () => {
     const { data, isLoading, isError } = useQueryCart();
 
     const handleFinalize = () => {
-        showToast("Zakup");
+        navigate('summary');
     }
 
     const handleClear = () => {
@@ -42,6 +44,7 @@ const Cart = () => {
     }
 
     const handleHideModal = () => {
+        setShowClear(false);
         setShowEdit(false);
         setShowDelete(false);
         setSelectedProduct(null);
@@ -99,8 +102,8 @@ const Cart = () => {
             <div className="flex flex-col space-y-5">
                 <div className="flex justify-center">Czy na pewno chcesz wyczyścić koszyk?</div>
                 <div className="space-x-4 flex justify-center">
-                    <Button text='Anuluj' icon="close" onClick={handleHideModal} />
                     <Button text='Wyczyść koszyk' icon="trash" type="danger" onClick={handleClear} />
+                    <Button text='Anuluj' icon="close" onClick={handleHideModal} />
                 </div>
             </div>
         </Popup>

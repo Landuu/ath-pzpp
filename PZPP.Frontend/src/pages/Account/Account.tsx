@@ -19,7 +19,10 @@ const Account = () => {
     const [isEditAddress, setIsEditAddress] = useState(false);
     const [isEditAddressLoading, setIsEditAddressLoading] = useState(false);
     const queryClient = useQueryClient();
-    const { data } = useQuery<UserAccountDto>({ queryKey: ['account'], queryFn: async () => (await axiosAuth.get('/api/account')).data });
+    const { data } = useQuery<UserAccountDto>({ 
+        queryFn: async () => (await axiosAuth.get('/api/account')).data, 
+        queryKey: ['account']
+    });
 
     const infoMutation = useMutation({
         mutationFn: (data: FormData) => {

@@ -13,6 +13,7 @@ import Account from "./pages/Account/Account";
 import Products from "./pages/Products/Products";
 import Product from "./pages/Product/Product";
 import Cart from "./pages/Cart/Cart";
+import CartSummary from "./pages/CartSummary/CartSummary";
 
 
 const App = () => {
@@ -54,6 +55,7 @@ const App = () => {
 				<Route path='/products' element={<Products />} />
 				<Route path='/products/:id' element={<Product />} />
 				<Route path='/cart' element={<Cart />} />
+				<Route path='/cart/summary' element={<CartSummary />} />
 
 				<Route element={<RouteGuard />}>
 					<Route path='/account' element={<Account />} />

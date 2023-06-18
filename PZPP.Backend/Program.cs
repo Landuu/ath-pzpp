@@ -63,7 +63,7 @@ app.UseRouting();
 app.UseRefreshToken();
 
 #pragma warning disable ASP0001
-app.UseAuthorization();
+app.UseAuthentication();
 app.UseAuthorization();
 #pragma warning restore ASP0001
 
