@@ -14,6 +14,6 @@
 
         public DateTime? LastLogin { get; set; }
 
-        public UserInfo UserInfo { get; set; } = null!;
+        public UserInfo? UserInfo { get; set; }
     }
 }

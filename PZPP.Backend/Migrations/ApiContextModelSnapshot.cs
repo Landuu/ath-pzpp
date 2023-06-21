@@ -63,7 +63,7 @@ namespace PZPP.Backend.Migrations
 
                     b.HasIndex("ProductCategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.ProductCategory", b =>
@@ -81,7 +81,7 @@ namespace PZPP.Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductCategories");
+                    b.ToTable("ProductCategories", (string)null);
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.User", b =>
@@ -111,7 +111,7 @@ namespace PZPP.Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.UserInfo", b =>
@@ -153,7 +153,7 @@ namespace PZPP.Backend.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("UserInfo");
+                    b.ToTable("UserInfo", (string)null);
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.Product", b =>

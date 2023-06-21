@@ -94,8 +94,6 @@ const Cart = () => {
                         }
                     </div>
                 </div>}
-
-
         </Container>
 
         <Popup width='auto' height='auto' visible={showClear} showTitle={false} onHidden={handleHideModal} dragEnabled={false} hideOnOutsideClick={true}>

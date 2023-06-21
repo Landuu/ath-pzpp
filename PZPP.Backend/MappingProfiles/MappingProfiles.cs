@@ -19,6 +19,7 @@ namespace PZPP.Backend.MappingProfiles
                 .ForMember(dest => dest.Name, x => x.MapFrom(src => src.FirstName + " " + src.LastName));
 
             CreateMap<Product, CartProductDto>();
+            CreateMap<UserInfo, UserInfoDto>();
         }
     }
 }

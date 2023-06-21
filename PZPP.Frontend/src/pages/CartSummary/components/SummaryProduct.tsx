@@ -1,17 +1,10 @@
-import { Button } from "devextreme-react/button";
 import { CartProductDto } from "../../../hooks/queries/useQueryCart";
 
-type CartProductElementProps = {
-    product: CartProductDto
-    handleShowEdit: (product: CartProductDto) => void
-    handleShowDelete: (product: CartProductDto) => void
-}
-
-const CartProductElement = ({ product, handleShowEdit, handleShowDelete }: CartProductElementProps) => {
+const SummaryProduct = ({ product }: { product: CartProductDto }) => {
     const getTotalBrutto = () => (product.Quantity * product.PriceBrutto).toFixed(2);
     const getTotalDetails = () => `${product.Quantity} x ${product.PriceBrutto.toFixed(2)}`;
 
-    return (<>
+    return (
         <div className="flex items-center py-2 space-x-4">
             <div className="min-w-fit">
                 <img className="w-14" src={product.ImageUrl} />
@@ -31,12 +24,9 @@ const CartProductElement = ({ product, handleShowEdit, handleShowDelete }: CartP
                 </div>
             </div>
             <div className="min-w-fit flex items-center space-x-1">
-                <Button icon="edit" stylingMode="text" onClick={() => handleShowEdit(product)} />
-                <Button icon="close" stylingMode="text" onClick={() => handleShowDelete(product)} />
             </div>
         </div>
-    </>);
+    );
 }
 
-
-export default CartProductElement;
+export default SummaryProduct;
