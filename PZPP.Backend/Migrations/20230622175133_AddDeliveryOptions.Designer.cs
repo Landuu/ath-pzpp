@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PZPP.Backend.Database;
 
@@ -11,9 +12,11 @@ using PZPP.Backend.Database;
 namespace PZPP.Backend.Migrations
 {
     [DbContext(typeof(ApiContext))]
-    partial class ApiContextModelSnapshot : ModelSnapshot
+    [Migration("20230622175133_AddDeliveryOptions")]
+    partial class AddDeliveryOptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,70 +45,6 @@ namespace PZPP.Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DeliveryOptions");
-                });
-
-            modelBuilder.Entity("PZPP.Backend.Models.Order", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("DeliveryOptionId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PostCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeliveryOptionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("PZPP.Backend.Models.OrderProduct", b =>
-                {
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<decimal>("PriceTotal")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("OrderId", "ProductId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("OrderProducts");
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.Product", b =>
@@ -242,44 +181,6 @@ namespace PZPP.Backend.Migrations
                     b.ToTable("UserInfo");
                 });
 
-            modelBuilder.Entity("PZPP.Backend.Models.Order", b =>
-                {
-                    b.HasOne("PZPP.Backend.Models.DeliveryOption", "DeliveryOption")
-                        .WithMany()
-                        .HasForeignKey("DeliveryOptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PZPP.Backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DeliveryOption");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PZPP.Backend.Models.OrderProduct", b =>
-                {
-                    b.HasOne("PZPP.Backend.Models.Order", "Order")
-                        .WithMany("Products")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PZPP.Backend.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("PZPP.Backend.Models.Product", b =>
                 {
                     b.HasOne("PZPP.Backend.Models.ProductCategory", "ProductCategory")
@@ -300,11 +201,6 @@ namespace PZPP.Backend.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PZPP.Backend.Models.Order", b =>
-                {
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("PZPP.Backend.Models.User", b =>

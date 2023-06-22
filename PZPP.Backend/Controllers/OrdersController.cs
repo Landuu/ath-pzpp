@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PZPP.Backend.Database;
 using PZPP.Backend.Dto;
+using PZPP.Backend.Models;
 using PZPP.Backend.Utils.Auth;
 using System.Text;
 using System.Text.Json;
@@ -44,9 +45,44 @@ namespace PZPP.Backend.Controllers
             var dto = new OrderSummaryDto()
             {
                 Cart = await ParseBase64Cart(cart),
-                UserInfo = user.UserInfo != null ? _mapper.Map<UserInfoDto>(user.UserInfo) : null
+                UserInfo = user.UserInfo != null ? _mapper.Map<UserInfoDto>(user.UserInfo) : null,
+                DeliveryOptions = await _context.DeliveryOptions.ToListAsync()
             };
             return Results.Json(dto);
+        }
+
+        [Authorize]
+        [HttpPost("summary")]
+        public async Task<IResult> PostSummary([FromBody] PostSummaryDto dto)
+        {
+            var user = await _context.Users
+                .Include(x => x.UserInfo)
+                .FirstOrDefaultAsync(x => x.Id == User.GetUID());
+            var products = await ParseBase64Cart(dto.Cart);
+            if (user == null || user.UserInfo == null || products == null) return Results.BadRequest();
+            if (user.UserInfo.Street == null || user.UserInfo.PostCode == null || user.UserInfo.City == null) return Results.BadRequest();
+
+            var orderProducts = products.Select(x => new OrderProduct()
+            {
+                ProductId = x.Id,
+                Quantity = x.Quantity,
+                Price = x.PriceBrutto,
+                PriceTotal = x.Quantity * x.PriceBrutto
+            }).ToList();
+
+            var order = new Order()
+            {
+                UserId = user.Id,
+                Street = user.UserInfo.Street,
+                PostCode = user.UserInfo.PostCode,
+                City = user.UserInfo.City,
+                DeliveryOptionId = dto.DeliveryOptionId,
+                Products = orderProducts
+            };
+
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
+            return Results.Ok();
         }
 
         private async Task<List<CartProductDto>?> ParseBase64Cart(string cart)
