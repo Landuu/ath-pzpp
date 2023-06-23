@@ -3,7 +3,7 @@ import axios from "axios";
 import { Button } from "devextreme-react/button";
 import { NumberBox } from 'devextreme-react/number-box';
 import { useState } from "react";
-import { IoCheckmarkCircleOutline } from "react-icons/io5";
+import { IoCheckmarkCircleOutline, IoCloseCircleOutline } from "react-icons/io5";
 import { Link, useParams } from "react-router-dom";
 import Container from "../../components/Container";
 import { useCart } from "../../hooks/useCart";
@@ -23,6 +23,7 @@ const Product = () => {
 
     const handleAddToCart = () => {
         if (!data) return;
+        if (!data.Stock) return;
 
         const currentProduct = getCartProduct(data.Id);
         if (!currentProduct) {
@@ -40,6 +41,12 @@ const Product = () => {
         }
 
         setQuantity(1);
+    }
+
+    const isStock = () => {
+        if (!data || !data.Stock) return false;
+        if (data.Stock <= 0) return false;
+        else return true;
     }
 
     return (
@@ -69,10 +76,18 @@ const Product = () => {
                     </div>
                     <div className="grid grid-cols-2 border p-4">
                         <div>
-                            <div className="font-medium text-green-600 flex items-center">
-                                <IoCheckmarkCircleOutline className="mr-1" />
-                                Produkt dostępny, {data?.Stock} szt.
-                            </div>
+                            {isStock() &&
+                                <div className="font-medium text-green-600 flex items-center">
+                                    <IoCheckmarkCircleOutline className="mr-1" />
+                                    Produkt dostępny, {data?.Stock} szt.
+                                </div>
+                            }
+                            {!isStock() &&
+                                <div className="font-medium text-gray-600 flex items-center">
+                                    <IoCloseCircleOutline className="mr-1" />
+                                    Produkt niedostępny
+                                </div>
+                            }
                             <div className="mt-2">
                                 <div className="text-3xl font-bold">
                                     {data?.PriceBrutto} zł
@@ -91,13 +106,18 @@ const Product = () => {
                                 value={quantity}
                                 onValueChanged={(e) => setQuantity(e.value)}
                             />
-                            <Button text="Dodaj do koszyka" type='default' icon="cart" className="px-3 py-1" onClick={handleAddToCart} />
+                            <Button
+                                text="Dodaj do koszyka"
+                                type='default'
+                                icon="cart"
+                                className="px-3 py-1"
+                                onClick={handleAddToCart}
+                                disabled={!isStock()}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
-            <div>Product ID:777</div>
-
         </Container>
     );
 }

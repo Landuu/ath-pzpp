@@ -1,0 +1,8 @@
+
+.detailsTable > tbody > tr > td {
+    @apply px-2
+}
+
+.detailsTable > tbody > tr > td:first-child {
+    @apply font-medium
+}

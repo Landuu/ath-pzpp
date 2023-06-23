@@ -66,12 +66,12 @@ const CartSummary = () => {
                 deliveryOptionId: delivery
             }
 
-            return await axiosAuth.post('/api/orders/summary', payload);
+            return (await axiosAuth.post('/api/orders/summary', payload)).data;
         },
         onSettled: () => setLoading(false),
-        onSuccess: () => {
+        onSuccess: (data: number) => {
             clearCart();
-            navigate("/");
+            navigate(`/orders/${data}`);
         }
     });
 

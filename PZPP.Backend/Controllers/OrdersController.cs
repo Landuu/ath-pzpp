@@ -62,13 +62,23 @@ namespace PZPP.Backend.Controllers
             if (user == null || user.UserInfo == null || products == null) return Results.BadRequest();
             if (user.UserInfo.Street == null || user.UserInfo.PostCode == null || user.UserInfo.City == null) return Results.BadRequest();
 
-            var orderProducts = products.Select(x => new OrderProduct()
+            var orderProducts = new List<OrderProduct>();
+            foreach (var p in products)
             {
-                ProductId = x.Id,
-                Quantity = x.Quantity,
-                Price = x.PriceBrutto,
-                PriceTotal = x.Quantity * x.PriceBrutto
-            }).ToList();
+                var databaseProduct = await _context.Products.FindAsync(p.Id);
+                if (databaseProduct == null) 
+                    continue;
+                if (p.Quantity > databaseProduct.Stock) 
+                    return Results.BadRequest("Stock");
+                databaseProduct.Stock -= p.Quantity;
+                orderProducts.Add(new OrderProduct()
+                {
+                    ProductId = p.Id,
+                    Quantity = p.Quantity,
+                    Price = p.PriceBrutto,
+                    PriceTotal = p.Quantity * p.PriceBrutto
+                });
+            }
 
             var order = new Order()
             {
@@ -82,7 +92,7 @@ namespace PZPP.Backend.Controllers
 
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
-            return Results.Ok();
+            return Results.Ok(order.Id);
         }
 
         private async Task<List<CartProductDto>?> ParseBase64Cart(string cart)

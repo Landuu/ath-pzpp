@@ -14,6 +14,7 @@ import Products from "./pages/Products/Products";
 import Product from "./pages/Product/Product";
 import Cart from "./pages/Cart/Cart";
 import CartSummary from "./pages/CartSummary/CartSummary";
+import Order from "./pages/Orders/Order";
 
 
 const App = () => {
@@ -31,7 +32,7 @@ const App = () => {
 			}
 
 			try {
-				const res = await axios.get('/api/auth/refresh');
+				await axios.get('/api/auth/refresh');
 				return axios(error.response.config);
 			} catch (error) {
 				return Promise.reject(error);
@@ -60,6 +61,7 @@ const App = () => {
 				<Route element={<RouteGuard />}>
 					<Route path='/account' element={<Account />} />
 					<Route path='/orders' element={<Orders />} />
+					<Route path='/orders/:id' element={<Order />} />
 				</Route>
 
 				<Route element={<RouteGuard onlyAdmin={true} />}>

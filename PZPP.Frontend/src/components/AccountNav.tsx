@@ -9,7 +9,7 @@ const AccountNav = () => {
                 <IoPersonOutline className="mr-2" />
                 Twoje konto
             </NavLink>
-            <NavLink className={css.link} to='/orders'>
+            <NavLink className={css.link} to='/orders' end={false}>
                 <IoDocumentOutline className="mr-2" />
                 Twoje zamówienia
             </NavLink>

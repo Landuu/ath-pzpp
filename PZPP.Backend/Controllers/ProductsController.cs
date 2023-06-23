@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PZPP.Backend.Database;
 using PZPP.Backend.Utils.Devextreme;
+using System.Xml.Linq;
 
 namespace PZPP.Backend.Controllers
 {
@@ -40,6 +41,16 @@ namespace PZPP.Backend.Controllers
         {
             var categories = await _context.ProductCategories.ToListAsync();
             return Results.Json(categories);
+        }
+
+        [HttpGet("random")]
+        public async Task<IResult> GetRandomProducts()
+        {
+            var products = await _context.Products
+                .OrderBy(x => Guid.NewGuid())
+                .Take(10)
+                .ToListAsync();
+            return Results.Json(products);
         }
     }
 }

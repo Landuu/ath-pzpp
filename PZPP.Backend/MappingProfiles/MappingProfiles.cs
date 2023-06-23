@@ -20,6 +20,25 @@ namespace PZPP.Backend.MappingProfiles
 
             CreateMap<Product, CartProductDto>();
             CreateMap<UserInfo, UserInfoDto>();
+
+            CreateMap<OrderProduct, OrderProductDto>()
+                .ForMember(dest => dest.ProductName, x => x.MapFrom(src => src.Product.Name));
+
+            CreateMap<Order, OrderDto>()
+                .ForMember(dest => dest.TotalWithoutDelivery, x => x.MapFrom(src => CalculateOrderTotalWithoutDelivery(src)))
+                .ForMember(dest => dest.TotalWithDelivery, x => x.MapFrom(src => CalculateOrderTotalWithDelivery(src)));
+
+
+        }
+
+        private static decimal CalculateOrderTotalWithoutDelivery(Order order)
+        {
+            return order.Products.Select(x => x.PriceTotal).Sum();
+        }
+
+        private static decimal CalculateOrderTotalWithDelivery(Order order)
+        {
+            return CalculateOrderTotalWithoutDelivery(order) + order.DeliveryOption.Cost;
         }
     }
 }
